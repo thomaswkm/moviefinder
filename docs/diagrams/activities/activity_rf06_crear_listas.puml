@@ -1,0 +1,83 @@
+@startuml
+title RF-06 - Crear listas personalizadas de peliculas
+
+|Usuario autenticado|
+start
+:Ingresa a la seccion de listas;
+
+|Sistema|
+:Verifica sesion activa del usuario;
+
+if (Usuario esta autenticado?) then (Si)
+  :Muestra listas existentes y acciones disponibles;
+
+  |Usuario autenticado|
+  :Selecciona accion de lista;
+
+  switch (Accion seleccionada)
+  case (Crear)
+    :Ingresa nombre de la nueva lista;
+    :Opcionalmente ingresa descripcion;
+    :Confirma creacion;
+
+    |Sistema|
+    :Valida datos de la lista;
+
+    if (Datos son validos?) then (Si)
+      |Repositorio/API|
+      :Crea lista personalizada para el usuario;
+      :Guarda lista vacia o con peliculas seleccionadas;
+    else (No)
+      |Sistema|
+      :Muestra errores de validacion;
+      stop
+    endif
+  case (Editar)
+    :Selecciona lista existente;
+    :Modifica nombre, descripcion o peliculas;
+    :Confirma cambios;
+
+    |Repositorio/API|
+    :Actualiza lista seleccionada;
+  case (Eliminar)
+    :Selecciona lista existente;
+    :Confirma eliminacion;
+
+    |Repositorio/API|
+    :Elimina lista personalizada del usuario;
+  case (Agregar pelicula)
+    :Selecciona pelicula desde catalogo o detalle;
+    :Selecciona una o mas listas destino;
+
+    |Repositorio/API|
+    :Agrega pelicula a listas seleccionadas;
+    :Permite que la pelicula pertenezca a multiples listas;
+  case (Quitar pelicula)
+    :Selecciona pelicula dentro de una lista;
+    :Confirma quitar pelicula;
+
+    |Repositorio/API|
+    :Quita pelicula de la lista seleccionada;
+  case (Compartir)
+    :Selecciona lista existente;
+    :Solicita compartir mediante enlace;
+
+    |Repositorio/API|
+    :Genera o recupera enlace compartible de la lista;
+  endswitch
+
+  if (Operacion fue exitosa?) then (Si)
+    |Sistema|
+    :Actualiza vista de listas;
+    :Muestra confirmacion de operacion completada;
+  else (No)
+    |Sistema|
+    :Muestra error de operacion;
+    :Permite reintentar;
+  endif
+else (No)
+  :Redirige a inicio de sesion o muestra acceso restringido;
+endif
+
+stop
+@enduml

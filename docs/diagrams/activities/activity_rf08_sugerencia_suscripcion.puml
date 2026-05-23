@@ -1,0 +1,57 @@
+@startuml
+title RF-08 - Sugerencia de suscripcion de streaming
+
+|Usuario autenticado|
+start
+:Ingresa a recomendaciones de streaming;
+
+|Sistema|
+:Verifica sesion activa del usuario;
+
+if (Usuario esta autenticado?) then (Si)
+  :Solicita watchlist del usuario;
+
+  |Repositorio/API|
+  :Obtiene peliculas de la watchlist;
+
+  if (Watchlist contiene peliculas?) then (Si)
+    :Obtiene disponibilidad de cada pelicula por plataforma;
+
+    |Sistema|
+    :Agrupa peliculas disponibles por plataforma;
+    :Calcula cantidad de coincidencias por plataforma;
+    :Calcula porcentaje de cobertura sobre la watchlist;
+    :Compara plataformas disponibles;
+
+    if (Existe al menos una plataforma con coincidencias?) then (Si)
+      :Selecciona plataforma o plataformas con mejor cobertura;
+      :Prepara explicacion de la recomendacion;
+      :Incluye cantidad y porcentaje de coincidencias;
+      :Ejemplo: 8 de 10 peliculas estan disponibles en Netflix;
+
+      |Usuario autenticado|
+      :Visualiza plataforma recomendada y detalle de coincidencias;
+    else (No)
+      |Sistema|
+      :Muestra mensaje sin recomendaciones disponibles;
+    endif
+
+    |Sistema|
+    if (La watchlist cambia?) then (Si)
+      :Detecta pelicula agregada o quitada;
+      :Recalcula coincidencias y recomendacion;
+      :Actualiza resultado mostrado;
+    else (No)
+      :Mantiene recomendacion actual;
+    endif
+  else (No)
+    |Sistema|
+    :Indica que se requiere una watchlist con peliculas;
+    :Sugiere agregar peliculas para obtener recomendacion;
+  endif
+else (No)
+  :Redirige a inicio de sesion o muestra acceso restringido;
+endif
+
+stop
+@enduml

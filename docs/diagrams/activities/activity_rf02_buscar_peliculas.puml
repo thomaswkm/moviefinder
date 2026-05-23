@@ -1,0 +1,55 @@
+@startuml
+title RF-02 - Buscar peliculas
+
+|Usuario|
+start
+:Abre la seccion de busqueda;
+:Ingresa nombre parcial o completo de pelicula;
+:Opcionalmente selecciona genero;
+:Opcionalmente selecciona anio;
+:Ejecuta la busqueda;
+
+|Sistema|
+:Recibe criterios de busqueda;
+:Normaliza texto ingresado;
+:Ignora diferencias entre mayusculas y minusculas;
+:Prepara filtros por nombre, genero y anio;
+
+if (Hay al menos un criterio de busqueda?) then (Si)
+  |Repositorio/API|
+  :Consulta peliculas coincidentes;
+  :Aplica coincidencia parcial por nombre;
+  :Aplica filtros seleccionados;
+
+  if (La consulta fue exitosa?) then (Si)
+    |Sistema|
+    if (Existen resultados coincidentes?) then (Si)
+      :Ordena y prepara resultados;
+      :Muestra listado de peliculas coincidentes;
+      :Muestra titulo, portada, genero y puntuacion promedio cuando esten disponibles;
+
+      |Usuario|
+      if (Desea ajustar la busqueda?) then (Si)
+        :Modifica texto o filtros;
+        :Ejecuta nueva busqueda;
+        |Sistema|
+        :Reinicia el flujo desde la recepcion de criterios;
+      else (No)
+        :Consulta resultados mostrados;
+      endif
+    else (No)
+      :Muestra mensaje sin coincidencias;
+      :Permite cambiar criterios de busqueda;
+    endif
+  else (No)
+    |Sistema|
+    :Muestra mensaje de error al buscar peliculas;
+    :Permite reintentar la busqueda;
+  endif
+else (No)
+  |Sistema|
+  :Muestra indicacion para ingresar texto o filtros;
+endif
+
+stop
+@enduml

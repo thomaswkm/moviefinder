@@ -1,0 +1,51 @@
+@startuml
+title RF-07 - Visualizar plataformas disponibles
+
+|Usuario|
+start
+:Abre el detalle de una pelicula;
+:Consulta seccion de plataformas disponibles;
+
+|Sistema|
+:Solicita disponibilidad de streaming para la pelicula;
+
+|Repositorio/API|
+:Consulta plataformas asociadas a la pelicula;
+:Obtiene nombre de plataforma;
+:Obtiene modalidad de acceso;
+:Verifica fecha o estado de actualizacion de la informacion;
+
+if (Consulta fue exitosa?) then (Si)
+  |Sistema|
+  if (Existen plataformas disponibles?) then (Si)
+    :Clasifica cada plataforma por modalidad;
+
+    if (Modalidad es incluida?) then (Si)
+      :Marca plataforma como incluida en suscripcion;
+    elseif (Modalidad es arriendo?) then (Si)
+      :Marca plataforma como requiere arriendo;
+    elseif (Modalidad es compra?) then (Si)
+      :Marca plataforma como requiere compra;
+    else (Desconocida)
+      :Marca modalidad como no especificada;
+    endif
+
+    if (Informacion esta actualizada?) then (Si)
+      :Muestra plataformas y modalidades al usuario;
+    else (No)
+      :Muestra plataformas con advertencia de posible desactualizacion;
+    endif
+  else (No)
+    :Muestra mensaje de pelicula sin plataformas disponibles;
+  endif
+else (No)
+  |Sistema|
+  :Muestra error al consultar plataformas;
+  :Permite reintentar consulta;
+endif
+
+|Usuario|
+:Revisa disponibilidad y condiciones de acceso;
+
+stop
+@enduml

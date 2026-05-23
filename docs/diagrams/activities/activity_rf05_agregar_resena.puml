@@ -1,0 +1,77 @@
+@startuml
+title RF-05 - Agregar, editar o eliminar resena
+
+|Usuario autenticado|
+start
+:Abre el detalle de una pelicula;
+:Selecciona gestionar resena;
+
+|Sistema|
+:Verifica sesion activa del usuario;
+
+if (Usuario esta autenticado?) then (Si)
+  |Repositorio/API|
+  :Consulta valoracion y resena del usuario para la pelicula;
+
+  |Sistema|
+  if (Usuario tiene valoracion asociada?) then (Si)
+    :Muestra opciones disponibles de resena;
+
+    |Usuario autenticado|
+    if (Quiere agregar o editar resena?) then (Agregar o editar)
+      :Escribe contenido textual de la resena;
+      :Confirma guardar resena;
+
+      |Sistema|
+      :Valida que la resena no exceda longitud maxima;
+
+      if (Longitud es valida?) then (Si)
+        |Repositorio/API|
+        if (Existe resena previa?) then (Si)
+          :Actualiza resena existente;
+        else (No)
+          :Crea nueva resena;
+        endif
+        :Asocia resena a usuario, pelicula y valoracion;
+
+        if (Guardado fue exitoso?) then (Si)
+          |Sistema|
+          :Muestra confirmacion de resena guardada;
+          :Actualiza detalle de pelicula;
+        else (No)
+          |Sistema|
+          :Muestra error al guardar resena;
+          :Permite reintentar;
+        endif
+      else (No)
+        :Muestra error de longitud maxima excedida;
+        :Solicita reducir contenido;
+      endif
+    else (Eliminar)
+      :Solicita eliminar resena existente;
+      :Confirma eliminacion;
+
+      |Repositorio/API|
+      :Elimina resena asociada al usuario y pelicula;
+
+      if (Eliminacion fue exitosa?) then (Si)
+        |Sistema|
+        :Muestra confirmacion de resena eliminada;
+        :Actualiza detalle de pelicula;
+      else (No)
+        |Sistema|
+        :Muestra error al eliminar resena;
+      endif
+    endif
+  else (No)
+    |Sistema|
+    :Indica que la resena debe asociarse a una valoracion;
+    :Ofrece crear una valoracion primero;
+  endif
+else (No)
+  |Sistema|
+  :Redirige a inicio de sesion o muestra acceso restringido;
+endif
+
+stop
+@enduml

@@ -1,0 +1,60 @@
+@startuml
+title RF-01 - Visualizar catalogo de peliculas
+
+|Usuario|
+start
+:Abre la aplicacion MovieFinder;
+:Ingresa a la seccion catalogo;
+
+|Sistema|
+:Inicializa vista de catalogo;
+:Solicita primera pagina de peliculas;
+
+|Repositorio/API|
+:Consulta peliculas disponibles;
+:Obtiene titulo, portada, genero y puntuacion promedio;
+
+if (La consulta fue exitosa?) then (Si)
+  |Sistema|
+  if (Existen peliculas disponibles?) then (Si)
+    :Renderiza listado inicial;
+    :Muestra titulo, portada, genero y puntuacion promedio por pelicula;
+
+    |Usuario|
+    while (Quiere seguir navegando?) is (Si)
+      :Desplaza el catalogo hacia abajo;
+
+      |Sistema|
+      if (Se aproxima al final de la pagina cargada?) then (Si)
+        :Activa carga diferida de mas resultados;
+
+        |Repositorio/API|
+        :Consulta siguiente pagina de peliculas;
+
+        |Sistema|
+        if (Existen mas resultados?) then (Si)
+          :Agrega nuevas peliculas al listado actual;
+          :Mantiene posicion de navegacion del usuario;
+        else (No)
+          :Indica que no hay mas resultados disponibles;
+        endif
+      else (No)
+        :Mantiene listado visible sin nueva consulta;
+      endif
+
+      |Usuario|
+    endwhile (No)
+
+    |Sistema|
+    :Conserva catalogo visible para consulta;
+  else (No)
+    :Muestra mensaje de catalogo sin peliculas disponibles;
+  endif
+else (No)
+  |Sistema|
+  :Muestra mensaje de error de carga;
+  :Permite reintentar la consulta;
+endif
+
+stop
+@enduml

@@ -1,0 +1,58 @@
+@startuml
+title RF-03 - Visualizar detalle de pelicula
+
+|Usuario|
+start
+:Visualiza catalogo o resultados de busqueda;
+:Selecciona una pelicula;
+
+|Sistema|
+:Recibe identificador de pelicula seleccionada;
+:Muestra estado de carga del detalle;
+:Solicita informacion detallada;
+
+|Repositorio/API|
+:Consulta datos de pelicula;
+:Obtiene sinopsis, genero, duracion, director y reparto;
+:Consulta valoracion promedio actualizada;
+:Consulta plataformas disponibles asociadas;
+
+if (La informacion se cargo correctamente?) then (Si)
+  |Sistema|
+  :Compone vista de detalle;
+  :Muestra sinopsis;
+  :Muestra genero y duracion;
+  :Muestra director y reparto;
+  :Muestra valoracion promedio actualizada;
+
+  if (Existen plataformas asociadas?) then (Si)
+    :Muestra plataformas disponibles;
+  else (No)
+    :Muestra mensaje de plataformas no disponibles;
+  endif
+
+  |Usuario|
+  :Revisa informacion detallada de la pelicula;
+
+  if (Desea volver al listado?) then (Si)
+    :Regresa al catalogo o resultados previos;
+  else (No)
+    :Permanece en el detalle de la pelicula;
+  endif
+else (No)
+  |Sistema|
+  :Muestra mensaje de error al cargar detalle;
+  :Permite reintentar carga;
+
+  |Usuario|
+  if (Selecciona reintentar?) then (Si)
+    :Solicita nuevamente el detalle;
+    |Sistema|
+    :Reinicia el flujo desde la solicitud de informacion detallada;
+  else (No)
+    :Vuelve al listado anterior;
+  endif
+endif
+
+stop
+@enduml

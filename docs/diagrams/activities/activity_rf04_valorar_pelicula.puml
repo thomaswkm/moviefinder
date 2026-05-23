@@ -1,0 +1,61 @@
+@startuml
+title RF-04 - Valorar pelicula
+
+|Usuario autenticado|
+start
+:Abre el detalle de una pelicula;
+:Selecciona opcion de valorar;
+:Ingresa puntuacion entre 1 y 5;
+:Confirma valoracion;
+
+|Sistema|
+:Verifica sesion activa del usuario;
+
+if (Usuario esta autenticado?) then (Si)
+  :Valida puntuacion ingresada;
+
+  if (Puntuacion esta entre 1 y 5?) then (Si)
+    |Repositorio/API|
+    :Busca valoracion activa del usuario para la pelicula;
+
+    if (Existe valoracion activa previa?) then (Si)
+      |Sistema|
+      :Informa que ya existe una valoracion activa;
+      :Solicita confirmar actualizacion de la valoracion;
+
+      |Usuario autenticado|
+      if (Confirma actualizar?) then (Si)
+        |Repositorio/API|
+        :Actualiza puntuacion existente;
+        :Recalcula promedio general de la pelicula;
+      else (No)
+        |Sistema|
+        :Cancela operacion sin cambios;
+        stop
+      endif
+    else (No)
+      |Repositorio/API|
+      :Registra nueva valoracion activa;
+      :Asocia valoracion a usuario y pelicula;
+      :Recalcula promedio general de la pelicula;
+    endif
+
+    if (Operacion fue exitosa?) then (Si)
+      |Sistema|
+      :Actualiza promedio mostrado en el detalle;
+      :Muestra confirmacion de valoracion guardada;
+    else (No)
+      |Sistema|
+      :Muestra error al guardar valoracion;
+      :Permite reintentar;
+    endif
+  else (No)
+    :Muestra error de puntuacion invalida;
+    :Solicita ingresar valor entre 1 y 5;
+  endif
+else (No)
+  :Redirige a inicio de sesion o muestra acceso restringido;
+endif
+
+stop
+@enduml
