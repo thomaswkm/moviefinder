@@ -1,0 +1,35 @@
+@startuml
+left to right direction
+
+actor "Usuario" as User
+actor "Usuario autenticado" as AuthUser
+
+rectangle "MovieFinder Mobile" {
+  usecase "Visualizar catalogo\nde peliculas" as UC01
+  usecase "Buscar peliculas\npor nombre, genero o anio" as UC02
+  usecase "Visualizar detalle\nde pelicula" as UC03
+  usecase "Visualizar plataformas\ndisponibles" as UC07
+
+  usecase "Valorar pelicula" as UC04
+  usecase "Agregar resena" as UC05
+  usecase "Crear listas\nde peliculas" as UC06
+  usecase "Obtener recomendacion\nde streaming" as UC08
+}
+
+User --> UC01
+User --> UC02
+User --> UC03
+User --> UC07
+
+AuthUser --|> User
+AuthUser --> UC04
+AuthUser --> UC05
+AuthUser --> UC06
+AuthUser --> UC08
+
+UC03 ..> UC07 : <<include>>
+UC05 ..> UC04 : <<extend>>
+UC08 ..> UC06 : <<include>>
+UC08 ..> UC07 : <<include>>
+
+@enduml

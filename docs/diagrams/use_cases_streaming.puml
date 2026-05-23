@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+
+actor "Usuario" as User
+
+rectangle "Streaming" {
+  usecase "Visualizar plataformas\ndisponibles" as ViewPlatforms
+  usecase "Ver si esta incluida" as Included
+  usecase "Ver si requiere arriendo" as Rent
+  usecase "Ver si requiere compra" as Buy
+}
+
+User --> ViewPlatforms
+
+ViewPlatforms ..> Included : <<include>>
+ViewPlatforms ..> Rent : <<include>>
+ViewPlatforms ..> Buy : <<include>>
+
+@enduml

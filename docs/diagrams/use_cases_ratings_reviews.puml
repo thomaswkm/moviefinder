@@ -1,0 +1,24 @@
+@startuml
+left to right direction
+
+actor "Usuario autenticado" as AuthUser
+
+rectangle "Ratings and Reviews" {
+  usecase "Valorar pelicula" as Rate
+  usecase "Validar puntuacion\nentre 1 y 5" as ValidateScore
+  usecase "Actualizar promedio\nde valoracion" as UpdateAverage
+  usecase "Agregar resena" as CreateReview
+  usecase "Editar resena" as EditReview
+  usecase "Eliminar resena" as DeleteReview
+}
+
+AuthUser --> Rate
+AuthUser --> CreateReview
+AuthUser --> EditReview
+AuthUser --> DeleteReview
+
+Rate ..> ValidateScore : <<include>>
+Rate ..> UpdateAverage : <<include>>
+CreateReview ..> Rate : <<extend>>
+
+@enduml

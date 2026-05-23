@@ -1,0 +1,25 @@
+@startuml
+left to right direction
+
+actor "Usuario" as User
+
+rectangle "Movies" {
+  usecase "Visualizar catalogo" as Catalog
+  usecase "Cargar mas resultados\nlazy loading" as LazyLoad
+  usecase "Buscar peliculas" as Search
+  usecase "Filtrar por nombre" as FilterName
+  usecase "Filtrar por genero" as FilterGenre
+  usecase "Filtrar por anio" as FilterYear
+  usecase "Ver detalle de pelicula" as Detail
+}
+
+User --> Catalog
+User --> Search
+User --> Detail
+
+Catalog ..> LazyLoad : <<include>>
+Search ..> FilterName : <<include>>
+Search ..> FilterGenre : <<include>>
+Search ..> FilterYear : <<include>>
+
+@enduml

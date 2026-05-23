@@ -1,0 +1,32 @@
+@startuml
+left to right direction
+
+actor "Usuario autenticado" as AuthUser
+
+rectangle "Watchlists" {
+  usecase "Crear lista de peliculas" as CreateList
+  usecase "Editar lista" as EditList
+  usecase "Eliminar lista" as DeleteList
+  usecase "Agregar pelicula a lista" as AddMovie
+  usecase "Quitar pelicula de lista" as RemoveMovie
+  usecase "Compartir lista\nmediante enlace" as ShareList
+}
+
+rectangle "Recommendations" {
+  usecase "Analizar watchlist" as AnalyzeWatchlist
+  usecase "Calcular coincidencias\npor plataforma" as CalculateMatches
+  usecase "Recomendar plataforma\noptima" as RecommendPlatform
+}
+
+AuthUser --> CreateList
+AuthUser --> EditList
+AuthUser --> DeleteList
+AuthUser --> AddMovie
+AuthUser --> RemoveMovie
+AuthUser --> ShareList
+AuthUser --> RecommendPlatform
+
+RecommendPlatform ..> AnalyzeWatchlist : <<include>>
+RecommendPlatform ..> CalculateMatches : <<include>>
+
+@enduml
