@@ -20,6 +20,34 @@ void main() {
     expect(find.text('¡Bienvenido!'), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
     expect(find.text('Google'), findsOneWidget);
+    expect(find.byKey(const Key('global_theme_mode_toggle')), findsOneWidget);
+  });
+
+  testWidgets('global theme toggle switches app theme', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MovieFinderApp());
+
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.system,
+    );
+
+    await tester.tap(find.byKey(const Key('global_theme_mode_toggle')));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.light,
+    );
+
+    await tester.tap(find.byKey(const Key('global_theme_mode_toggle')));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.dark,
+    );
   });
 
   testWidgets('navigates from login to register page', (

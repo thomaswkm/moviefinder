@@ -25,6 +25,7 @@ import 'features/intro/presentation/pages/intro_page.dart';
 import 'features/streaming/data/datasources/streaming_mock_data_source.dart';
 import 'features/streaming/data/repositories/streaming_repository_impl.dart';
 import 'features/streaming/domain/usecases/get_streaming_sources.dart';
+import 'shared/widgets/theme_mode_toggle.dart';
 
 void main() {
   runApp(const MovieFinderApp());
@@ -91,20 +92,40 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: _themeController.themeMode,
-          home: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            transitionBuilder: (child, animation) {
-              final offsetAnimation = Tween<Offset>(
-                begin: const Offset(0, 0.03),
-                end: Offset.zero,
-              ).animate(animation);
+          home: Stack(
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, animation) {
+                  final offsetAnimation = Tween<Offset>(
+                    begin: const Offset(0, 0.03),
+                    end: Offset.zero,
+                  ).animate(animation);
 
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(position: offsetAnimation, child: child),
-              );
-            },
-            child: _buildScreen(),
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: _buildScreen(),
+              ),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: SafeArea(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: ThemeModeToggle(
+                      key: const Key('global_theme_mode_toggle'),
+                      controller: _themeController,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -124,7 +145,6 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
       AppScreen.login => LoginPage(
         key: const ValueKey(AppScreen.login),
         controller: _loginController,
-        themeController: _themeController,
         onLoggedIn: () {
           _authenticatedUser = _loginController.authenticatedUser;
           _showScreen(AppScreen.home);
@@ -134,7 +154,6 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
       AppScreen.register => RegisterPage(
         key: const ValueKey(AppScreen.register),
         controller: _registerController,
-        themeController: _themeController,
         onRegistered: () {
           _authenticatedUser = _registerController.registeredUser;
           _showScreen(AppScreen.home);

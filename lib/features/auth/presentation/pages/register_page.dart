@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/theme_controller.dart';
-import '../../../../shared/widgets/theme_mode_toggle.dart';
 import '../controllers/register_controller.dart';
 import '../widgets/auth_background_mark.dart';
 import '../widgets/auth_text_field.dart';
@@ -12,13 +10,11 @@ class RegisterPage extends StatefulWidget {
   const RegisterPage({
     super.key,
     required this.controller,
-    required this.themeController,
     required this.onRegistered,
     this.onLoginRequested,
   });
 
   final RegisterController controller;
-  final ThemeController themeController;
   final VoidCallback onRegistered;
   final VoidCallback? onLoginRequested;
 
@@ -94,12 +90,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: ThemeModeToggle(
-                              controller: widget.themeController,
-                            ),
-                          ),
                           SizedBox(height: screenHeight < 720 ? 46 : 78),
                           Text(
                             '¡Únete y encuentra\ntus películas!',
