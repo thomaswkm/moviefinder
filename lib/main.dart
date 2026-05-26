@@ -15,6 +15,12 @@ import 'features/auth/presentation/controllers/register_controller.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/intro/presentation/pages/intro_page.dart';
+import 'features/movies/data/datasources/movie_mock_data_source.dart';
+import 'features/movies/data/repositories/movie_repository_impl.dart';
+import 'features/movies/domain/entities/movie.dart';
+import 'features/movies/domain/usecases/get_home_movies.dart';
+import 'features/movies/presentation/controllers/home_controller.dart';
+import 'features/movies/presentation/pages/home_page.dart';
 
 void main() {
   runApp(const MovieFinderApp());
@@ -33,9 +39,11 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
   late final GetCurrentUser _getCurrentUser;
   late final LoginController _loginController;
   late final RegisterController _registerController;
+  late final HomeController _homeController;
 
   AppScreen _screen = AppScreen.intro;
   AuthenticatedUser? _authenticatedUser;
+  Movie? _selectedMovie;
 
   @override
   void initState() {
@@ -49,6 +57,8 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     _getCurrentUser = GetCurrentUser(authRepository);
     _loginController = LoginController(LoginUser(authRepository));
     _registerController = RegisterController(RegisterUser(authRepository));
+    final movieRepository = MovieRepositoryImpl(const MovieMockDataSource());
+    _homeController = HomeController(GetHomeMovies(movieRepository));
     _restoreSession();
   }
 
@@ -57,6 +67,7 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     _themeController.dispose();
     _loginController.dispose();
     _registerController.dispose();
+    _homeController.dispose();
     super.dispose();
   }
 
@@ -121,9 +132,15 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
         },
         onLoginRequested: () => _showScreen(AppScreen.login),
       ),
-      AppScreen.home => _HomePlaceholder(
+      AppScreen.home => HomePage(
         key: const ValueKey(AppScreen.home),
-        username: _authenticatedUser?.username ?? 'user',
+        controller: _homeController,
+        onMovieSelected: _showMovieDetail,
+      ),
+      AppScreen.movieDetail => _MovieDetailPlaceholder(
+        key: const ValueKey(AppScreen.movieDetail),
+        movie: _selectedMovie,
+        onBack: () => _showScreen(AppScreen.home),
       ),
     };
   }
@@ -153,33 +170,49 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
         break;
     }
   }
+
+  void _showMovieDetail(Movie movie) {
+    setState(() {
+      _selectedMovie = movie;
+      _screen = AppScreen.movieDetail;
+    });
+  }
 }
 
-enum AppScreen { intro, login, register, home }
+enum AppScreen { intro, login, register, home, movieDetail }
 
-class _HomePlaceholder extends StatelessWidget {
-  const _HomePlaceholder({super.key, required this.username});
+class _MovieDetailPlaceholder extends StatelessWidget {
+  const _MovieDetailPlaceholder({
+    super.key,
+    required this.movie,
+    required this.onBack,
+  });
 
-  final String username;
+  final Movie? movie;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
+    final selectedMovie = movie;
+
     return Scaffold(
+      appBar: AppBar(leading: BackButton(onPressed: onBack)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.movie_filter_outlined, size: 64),
+              const Icon(Icons.movie_outlined, size: 64),
               const SizedBox(height: 16),
               Text(
-                'Cuenta creada',
-                style: Theme.of(context).textTheme.headlineMedium,
+                selectedMovie?.title ?? 'Detalle',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
-              Text(
-                'Bienvenido, $username. Home se implementara en CU-04.',
+              const Text(
+                'Detalle de pelicula se implementara en el siguiente CU.',
                 textAlign: TextAlign.center,
               ),
             ],

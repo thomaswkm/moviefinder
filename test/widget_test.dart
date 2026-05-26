@@ -47,8 +47,26 @@ void main() {
     await tester.pumpWidget(const MovieFinderApp());
     await tester.pumpAndSettle();
 
+    expect(find.text('For you'), findsOneWidget);
+    expect(find.text('The Godfather'), findsOneWidget);
+  });
+
+  testWidgets('opens movie detail placeholder from home card', (
+    WidgetTester tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
+
+    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpAndSettle();
+
+    final movieCard = find.byKey(const ValueKey('movie_card_1'));
+    await tester.ensureVisible(movieCard);
+    await tester.pumpAndSettle();
+    await tester.tap(movieCard);
+    await tester.pumpAndSettle();
+
     expect(
-      find.text('Bienvenido, mock.user. Home se implementara en CU-04.'),
+      find.text('Detalle de pelicula se implementara en el siguiente CU.'),
       findsOneWidget,
     );
   });
