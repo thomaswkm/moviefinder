@@ -55,3 +55,5 @@ local.properties
 
 # OS files
 Thumbs.db
+.agents
+.opencode
