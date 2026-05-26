@@ -3,33 +3,32 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../shared/widgets/theme_mode_toggle.dart';
-import '../controllers/register_controller.dart';
+import '../controllers/login_controller.dart';
 import '../widgets/auth_background_mark.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/google_sign_in_button.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({
+class LoginPage extends StatefulWidget {
+  const LoginPage({
     super.key,
     required this.controller,
     required this.themeController,
-    required this.onRegistered,
-    this.onLoginRequested,
+    required this.onLoggedIn,
+    required this.onRegisterRequested,
   });
 
-  final RegisterController controller;
+  final LoginController controller;
   final ThemeController themeController;
-  final VoidCallback onRegistered;
-  final VoidCallback? onLoginRequested;
+  final VoidCallback onLoggedIn;
+  final VoidCallback onRegisterRequested;
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
 
   @override
   void initState() {
@@ -42,7 +41,6 @@ class _RegisterPageState extends State<RegisterPage> {
     widget.controller.removeListener(_onControllerChanged);
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -53,20 +51,20 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _submit() async {
-    final success = await widget.controller.register(
+    final success = await widget.controller.login(
       email: _emailController.text,
       password: _passwordController.text,
-      confirmPassword: _confirmPasswordController.text,
     );
 
     if (success && mounted) {
-      widget.onRegistered();
+      widget.onLoggedIn();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
+    final textTheme = Theme.of(context).textTheme;
     final screenHeight = MediaQuery.sizeOf(context).height;
 
     return Scaffold(
@@ -88,7 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     alignment: Alignment.topCenter,
                     children: [
                       Positioned(
-                        top: 205,
+                        top: 190,
                         child: AuthBackgroundMark(size: logoSize),
                       ),
                       Column(
@@ -100,33 +98,30 @@ class _RegisterPageState extends State<RegisterPage> {
                               controller: widget.themeController,
                             ),
                           ),
-                          SizedBox(height: screenHeight < 720 ? 46 : 78),
+                          SizedBox(height: screenHeight < 720 ? 40 : 70),
                           Text(
-                            '¡Únete y encuentra\ntus películas!',
+                            '¡Bienvenido!',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineLarge,
+                            style: textTheme.headlineLarge,
                           ),
-                          const SizedBox(height: 84),
+                          const SizedBox(height: 76),
+                          Text(
+                            'Login to your Account',
+                            style: textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 30),
                           AuthTextField(
                             controller: _emailController,
                             hintText: 'Email',
                             keyboardType: TextInputType.emailAddress,
                             errorText: controller.fieldErrors['email'],
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 44),
                           AuthTextField(
                             controller: _passwordController,
                             hintText: 'Password',
                             obscureText: true,
                             errorText: controller.fieldErrors['password'],
-                          ),
-                          const SizedBox(height: 24),
-                          AuthTextField(
-                            controller: _confirmPasswordController,
-                            hintText: 'Confirm Password',
-                            obscureText: true,
-                            errorText:
-                                controller.fieldErrors['confirmPassword'],
                           ),
                           if (controller.message != null) ...[
                             const SizedBox(height: 16),
@@ -136,7 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               style: const TextStyle(color: AppColors.error),
                             ),
                           ],
-                          const SizedBox(height: 60),
+                          const SizedBox(height: 70),
                           FilledButton(
                             onPressed: controller.isLoading ? null : _submit,
                             child: controller.isLoading
@@ -147,9 +142,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                       color: Colors.black,
                                     ),
                                   )
-                                : const Text('Sign up'),
+                                : const Text('Sign In'),
                           ),
-                          const SizedBox(height: 70),
+                          const SizedBox(height: 46),
                           const Text(
                             '-Or sign in with-',
                             textAlign: TextAlign.center,
@@ -160,16 +155,28 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           const SizedBox(height: 22),
                           const Center(child: GoogleSignInButton()),
-                          if (widget.onLoginRequested != null) ...[
-                            const SizedBox(height: 36),
-                            TextButton(
-                              onPressed: widget.onLoginRequested,
-                              child: const Text(
-                                'Already have an account? Sign in',
-                                style: TextStyle(color: AppColors.primary),
+                          const SizedBox(height: 72),
+                          TextButton(
+                            key: const Key('go_to_register_button'),
+                            onPressed: widget.onRegisterRequested,
+                            child: Text.rich(
+                              TextSpan(
+                                text: "Don't have an account? ",
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  fontSize: 16,
+                                ),
+                                children: const [
+                                  TextSpan(
+                                    text: 'Sign up',
+                                    style: TextStyle(color: AppColors.primary),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ],

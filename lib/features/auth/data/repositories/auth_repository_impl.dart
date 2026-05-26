@@ -3,6 +3,7 @@ import '../../../../core/storage/token_storage.dart';
 import '../../domain/entities/authenticated_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_data_source.dart';
+import '../models/login_request_model.dart';
 import '../models/register_request_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -10,6 +11,22 @@ class AuthRepositoryImpl implements AuthRepository {
 
   final AuthDataSource _dataSource;
   final TokenStorage _tokenStorage;
+
+  @override
+  Future<Result<AuthenticatedUser>> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await _dataSource.login(
+        LoginRequestModel(email: email, password: password),
+      );
+      await _tokenStorage.saveToken(response.token);
+      return Success(response.toEntity());
+    } on Exception {
+      return const Failure('No se pudo iniciar sesion. Intentalo nuevamente.');
+    }
+  }
 
   @override
   Future<Result<AuthenticatedUser>> register({

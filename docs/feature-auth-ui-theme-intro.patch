@@ -1,0 +1,1493 @@
+diff --git a/lib/core/theme/app_colors.dart b/lib/core/theme/app_colors.dart
+new file mode 100644
+index 0000000..d221fd3
+--- /dev/null
++++ b/lib/core/theme/app_colors.dart
+@@ -0,0 +1,10 @@
++import 'package:flutter/material.dart';
++
++abstract final class AppColors {
++  static const primary = Color(0xFF8CF241);
++  static const darkPrimary = Color(0xFF1E4A12);
++  static const lightBackground = Color(0xFFFFFFFF);
++  static const darkBackground = Color(0xFF000000);
++  static const secondaryText = Color(0xFF9E9E9E);
++  static const error = Color(0xFFFF8A80);
++}
+diff --git a/lib/core/theme/app_theme.dart b/lib/core/theme/app_theme.dart
+new file mode 100644
+index 0000000..eb8e8ad
+--- /dev/null
++++ b/lib/core/theme/app_theme.dart
+@@ -0,0 +1,100 @@
++import 'package:flutter/material.dart';
++
++import 'app_colors.dart';
++
++abstract final class AppTheme {
++  static ThemeData get light {
++    final colorScheme = ColorScheme.fromSeed(
++      seedColor: AppColors.primary,
++      brightness: Brightness.light,
++      primary: AppColors.primary,
++      surface: AppColors.lightBackground,
++      error: AppColors.error,
++    );
++
++    return _base(colorScheme).copyWith(
++      scaffoldBackgroundColor: AppColors.lightBackground,
++      textTheme: _textTheme(Brightness.light),
++      inputDecorationTheme: _inputDecorationTheme(Brightness.light),
++    );
++  }
++
++  static ThemeData get dark {
++    final colorScheme = ColorScheme.fromSeed(
++      seedColor: AppColors.primary,
++      brightness: Brightness.dark,
++      primary: AppColors.primary,
++      surface: AppColors.darkBackground,
++      error: AppColors.error,
++    );
++
++    return _base(colorScheme).copyWith(
++      scaffoldBackgroundColor: AppColors.darkBackground,
++      textTheme: _textTheme(Brightness.dark),
++      inputDecorationTheme: _inputDecorationTheme(Brightness.dark),
++    );
++  }
++
++  static ThemeData _base(ColorScheme colorScheme) {
++    return ThemeData(
++      colorScheme: colorScheme,
++      useMaterial3: true,
++      filledButtonTheme: FilledButtonThemeData(
++        style: FilledButton.styleFrom(
++          backgroundColor: AppColors.primary,
++          foregroundColor: Colors.black,
++          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
++          disabledForegroundColor: Colors.black.withValues(alpha: 0.5),
++          minimumSize: const Size.fromHeight(64),
++          shape: RoundedRectangleBorder(
++            borderRadius: BorderRadius.circular(32),
++          ),
++          textStyle: const TextStyle(fontSize: 18),
++        ),
++      ),
++    );
++  }
++
++  static TextTheme _textTheme(Brightness brightness) {
++    final color = brightness == Brightness.dark ? Colors.white : Colors.black;
++
++    return TextTheme(
++      headlineLarge: TextStyle(
++        color: color,
++        fontSize: 36,
++        height: 1.15,
++        fontWeight: FontWeight.w400,
++      ),
++      titleLarge: TextStyle(
++        color: color,
++        fontSize: 22,
++        fontWeight: FontWeight.w400,
++      ),
++      bodyMedium: TextStyle(color: color, fontSize: 16),
++      bodySmall: const TextStyle(color: AppColors.secondaryText, fontSize: 14),
++    );
++  }
++
++  static InputDecorationTheme _inputDecorationTheme(Brightness brightness) {
++    final borderColor = brightness == Brightness.dark
++        ? const Color(0xFFE0E0E0)
++        : Colors.black;
++
++    OutlineInputBorder border(Color color, {double width = 1}) {
++      return OutlineInputBorder(
++        borderRadius: BorderRadius.circular(9),
++        borderSide: BorderSide(color: color, width: width),
++      );
++    }
++
++    return InputDecorationTheme(
++      hintStyle: const TextStyle(color: AppColors.secondaryText),
++      errorStyle: const TextStyle(color: AppColors.error),
++      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
++      enabledBorder: border(borderColor),
++      focusedBorder: border(AppColors.primary, width: 1.5),
++      errorBorder: border(AppColors.error),
++      focusedErrorBorder: border(AppColors.error, width: 1.5),
++    );
++  }
++}
+diff --git a/lib/core/theme/theme_controller.dart b/lib/core/theme/theme_controller.dart
+new file mode 100644
+index 0000000..ce9b00d
+--- /dev/null
++++ b/lib/core/theme/theme_controller.dart
+@@ -0,0 +1,16 @@
++import 'package:flutter/material.dart';
++
++class ThemeController extends ChangeNotifier {
++  ThemeMode _themeMode = ThemeMode.system;
++
++  ThemeMode get themeMode => _themeMode;
++
++  void cycleThemeMode() {
++    _themeMode = switch (_themeMode) {
++      ThemeMode.system => ThemeMode.light,
++      ThemeMode.light => ThemeMode.dark,
++      ThemeMode.dark => ThemeMode.system,
++    };
++    notifyListeners();
++  }
++}
+diff --git a/lib/features/auth/data/datasources/auth_data_source.dart b/lib/features/auth/data/datasources/auth_data_source.dart
+index 1eccca5..d18b2dd 100644
+--- a/lib/features/auth/data/datasources/auth_data_source.dart
++++ b/lib/features/auth/data/datasources/auth_data_source.dart
+@@ -1,6 +1,9 @@
+ import '../models/auth_response_model.dart';
++import '../models/login_request_model.dart';
+ import '../models/register_request_model.dart';
+ 
+ abstract interface class AuthDataSource {
++  Future<AuthResponseModel> login(LoginRequestModel request);
++
+   Future<AuthResponseModel> register(RegisterRequestModel request);
+ }
+diff --git a/lib/features/auth/data/datasources/auth_mock_data_source.dart b/lib/features/auth/data/datasources/auth_mock_data_source.dart
+index c93aa8a..7187894 100644
+--- a/lib/features/auth/data/datasources/auth_mock_data_source.dart
++++ b/lib/features/auth/data/datasources/auth_mock_data_source.dart
+@@ -1,10 +1,23 @@
+ import '../models/auth_response_model.dart';
++import '../models/login_request_model.dart';
+ import '../models/register_request_model.dart';
+ import 'auth_data_source.dart';
+ 
+ class AuthMockDataSource implements AuthDataSource {
+   const AuthMockDataSource();
+ 
++  @override
++  Future<AuthResponseModel> login(LoginRequestModel request) async {
++    await Future<void>.delayed(const Duration(milliseconds: 500));
++
++    return AuthResponseModel(
++      userId: 1,
++      email: request.email,
++      username: _usernameFromEmail(request.email),
++      token: 'mock-jwt-token',
++    );
++  }
++
+   @override
+   Future<AuthResponseModel> register(RegisterRequestModel request) async {
+     await Future<void>.delayed(const Duration(milliseconds: 500));
+@@ -16,4 +29,9 @@ class AuthMockDataSource implements AuthDataSource {
+       token: 'mock-jwt-token',
+     );
+   }
++
++  String _usernameFromEmail(String email) {
++    final localPart = email.split('@').first.trim();
++    return localPart.isEmpty ? 'user' : localPart;
++  }
+ }
+diff --git a/lib/features/auth/data/models/login_request_model.dart b/lib/features/auth/data/models/login_request_model.dart
+new file mode 100644
+index 0000000..e7d39a3
+--- /dev/null
++++ b/lib/features/auth/data/models/login_request_model.dart
+@@ -0,0 +1,10 @@
++class LoginRequestModel {
++  const LoginRequestModel({required this.email, required this.password});
++
++  final String email;
++  final String password;
++
++  Map<String, dynamic> toJson() {
++    return {'email': email, 'password': password};
++  }
++}
+diff --git a/lib/features/auth/data/repositories/auth_repository_impl.dart b/lib/features/auth/data/repositories/auth_repository_impl.dart
+index 91faaff..668b53f 100644
+--- a/lib/features/auth/data/repositories/auth_repository_impl.dart
++++ b/lib/features/auth/data/repositories/auth_repository_impl.dart
+@@ -3,6 +3,7 @@ import '../../../../core/storage/token_storage.dart';
+ import '../../domain/entities/authenticated_user.dart';
+ import '../../domain/repositories/auth_repository.dart';
+ import '../datasources/auth_data_source.dart';
++import '../models/login_request_model.dart';
+ import '../models/register_request_model.dart';
+ 
+ class AuthRepositoryImpl implements AuthRepository {
+@@ -11,6 +12,22 @@ class AuthRepositoryImpl implements AuthRepository {
+   final AuthDataSource _dataSource;
+   final TokenStorage _tokenStorage;
+ 
++  @override
++  Future<Result<AuthenticatedUser>> login({
++    required String email,
++    required String password,
++  }) async {
++    try {
++      final response = await _dataSource.login(
++        LoginRequestModel(email: email, password: password),
++      );
++      await _tokenStorage.saveToken(response.token);
++      return Success(response.toEntity());
++    } on Exception {
++      return const Failure('No se pudo iniciar sesion. Intentalo nuevamente.');
++    }
++  }
++
+   @override
+   Future<Result<AuthenticatedUser>> register({
+     required String email,
+diff --git a/lib/features/auth/domain/repositories/auth_repository.dart b/lib/features/auth/domain/repositories/auth_repository.dart
+index 87a4d30..c4f350f 100644
+--- a/lib/features/auth/domain/repositories/auth_repository.dart
++++ b/lib/features/auth/domain/repositories/auth_repository.dart
+@@ -2,6 +2,11 @@ import '../../../../core/result/result.dart';
+ import '../entities/authenticated_user.dart';
+ 
+ abstract interface class AuthRepository {
++  Future<Result<AuthenticatedUser>> login({
++    required String email,
++    required String password,
++  });
++
+   Future<Result<AuthenticatedUser>> register({
+     required String email,
+     required String password,
+diff --git a/lib/features/auth/domain/usecases/login_user.dart b/lib/features/auth/domain/usecases/login_user.dart
+new file mode 100644
+index 0000000..34f59db
+--- /dev/null
++++ b/lib/features/auth/domain/usecases/login_user.dart
+@@ -0,0 +1,43 @@
++import '../../../../core/result/result.dart';
++import '../entities/authenticated_user.dart';
++import '../repositories/auth_repository.dart';
++
++class LoginUser {
++  const LoginUser(this._repository);
++
++  final AuthRepository _repository;
++
++  Future<Result<AuthenticatedUser>> call({
++    required String email,
++    required String password,
++  }) async {
++    final normalizedEmail = email.trim();
++    final validationErrors = <String, String>{};
++
++    if (normalizedEmail.isEmpty) {
++      validationErrors['email'] = 'Ingresa tu email.';
++    } else if (!_isValidEmail(normalizedEmail)) {
++      validationErrors['email'] = 'Ingresa un email valido.';
++    }
++
++    if (password.isEmpty) {
++      validationErrors['password'] = 'Ingresa tu password.';
++    } else if (password.length < 6) {
++      validationErrors['password'] =
++          'El password debe tener al menos 6 caracteres.';
++    }
++
++    if (validationErrors.isNotEmpty) {
++      return Failure(
++        'Revisa los campos del formulario.',
++        fieldErrors: validationErrors,
++      );
++    }
++
++    return _repository.login(email: normalizedEmail, password: password);
++  }
++
++  bool _isValidEmail(String value) {
++    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value);
++  }
++}
+diff --git a/lib/features/auth/presentation/controllers/login_controller.dart b/lib/features/auth/presentation/controllers/login_controller.dart
+new file mode 100644
+index 0000000..233d755
+--- /dev/null
++++ b/lib/features/auth/presentation/controllers/login_controller.dart
+@@ -0,0 +1,48 @@
++import 'package:flutter/foundation.dart';
++
++import '../../../../core/result/result.dart';
++import '../../domain/entities/authenticated_user.dart';
++import '../../domain/usecases/login_user.dart';
++
++class LoginController extends ChangeNotifier {
++  LoginController(this._loginUser);
++
++  final LoginUser _loginUser;
++
++  bool _isLoading = false;
++  String? _message;
++  Map<String, String> _fieldErrors = const {};
++  AuthenticatedUser? _authenticatedUser;
++
++  bool get isLoading => _isLoading;
++  String? get message => _message;
++  Map<String, String> get fieldErrors => _fieldErrors;
++  AuthenticatedUser? get authenticatedUser => _authenticatedUser;
++
++  Future<bool> login({required String email, required String password}) async {
++    _isLoading = true;
++    _message = null;
++    _fieldErrors = const {};
++    _authenticatedUser = null;
++    notifyListeners();
++
++    final result = await _loginUser(email: email, password: password);
++
++    switch (result) {
++      case Success<AuthenticatedUser>(value: final user):
++        _authenticatedUser = user;
++        _isLoading = false;
++        notifyListeners();
++        return true;
++      case Failure<AuthenticatedUser>(
++        message: final message,
++        fieldErrors: final fieldErrors,
++      ):
++        _message = message;
++        _fieldErrors = fieldErrors;
++        _isLoading = false;
++        notifyListeners();
++        return false;
++    }
++  }
++}
+diff --git a/lib/features/auth/presentation/pages/login_page.dart b/lib/features/auth/presentation/pages/login_page.dart
+new file mode 100644
+index 0000000..4dc0bff
+--- /dev/null
++++ b/lib/features/auth/presentation/pages/login_page.dart
+@@ -0,0 +1,192 @@
++import 'package:flutter/material.dart';
++
++import '../../../../core/theme/app_colors.dart';
++import '../../../../core/theme/theme_controller.dart';
++import '../../../../shared/widgets/theme_mode_toggle.dart';
++import '../controllers/login_controller.dart';
++import '../widgets/auth_background_mark.dart';
++import '../widgets/auth_text_field.dart';
++import '../widgets/google_sign_in_button.dart';
++
++class LoginPage extends StatefulWidget {
++  const LoginPage({
++    super.key,
++    required this.controller,
++    required this.themeController,
++    required this.onLoggedIn,
++    required this.onRegisterRequested,
++  });
++
++  final LoginController controller;
++  final ThemeController themeController;
++  final VoidCallback onLoggedIn;
++  final VoidCallback onRegisterRequested;
++
++  @override
++  State<LoginPage> createState() => _LoginPageState();
++}
++
++class _LoginPageState extends State<LoginPage> {
++  final _emailController = TextEditingController();
++  final _passwordController = TextEditingController();
++
++  @override
++  void initState() {
++    super.initState();
++    widget.controller.addListener(_onControllerChanged);
++  }
++
++  @override
++  void dispose() {
++    widget.controller.removeListener(_onControllerChanged);
++    _emailController.dispose();
++    _passwordController.dispose();
++    super.dispose();
++  }
++
++  void _onControllerChanged() {
++    if (mounted) {
++      setState(() {});
++    }
++  }
++
++  Future<void> _submit() async {
++    final success = await widget.controller.login(
++      email: _emailController.text,
++      password: _passwordController.text,
++    );
++
++    if (success && mounted) {
++      widget.onLoggedIn();
++    }
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final controller = widget.controller;
++    final textTheme = Theme.of(context).textTheme;
++    final screenHeight = MediaQuery.sizeOf(context).height;
++
++    return Scaffold(
++      body: SafeArea(
++        child: LayoutBuilder(
++          builder: (context, constraints) {
++            final contentWidth = constraints.maxWidth.clamp(0.0, 420.0);
++            final logoSize = contentWidth * 0.95;
++
++            return SingleChildScrollView(
++              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
++              child: Center(
++                child: ConstrainedBox(
++                  constraints: BoxConstraints(
++                    maxWidth: 420,
++                    minHeight: screenHeight - 48,
++                  ),
++                  child: Stack(
++                    alignment: Alignment.topCenter,
++                    children: [
++                      Positioned(
++                        top: 190,
++                        child: AuthBackgroundMark(size: logoSize),
++                      ),
++                      Column(
++                        crossAxisAlignment: CrossAxisAlignment.stretch,
++                        children: [
++                          Align(
++                            alignment: Alignment.centerRight,
++                            child: ThemeModeToggle(
++                              controller: widget.themeController,
++                            ),
++                          ),
++                          SizedBox(height: screenHeight < 720 ? 40 : 70),
++                          Text(
++                            '¡Bienvenido!',
++                            textAlign: TextAlign.center,
++                            style: textTheme.headlineLarge,
++                          ),
++                          const SizedBox(height: 76),
++                          Text(
++                            'Login to your Account',
++                            style: textTheme.titleLarge,
++                          ),
++                          const SizedBox(height: 30),
++                          AuthTextField(
++                            controller: _emailController,
++                            hintText: 'Email',
++                            keyboardType: TextInputType.emailAddress,
++                            errorText: controller.fieldErrors['email'],
++                          ),
++                          const SizedBox(height: 44),
++                          AuthTextField(
++                            controller: _passwordController,
++                            hintText: 'Password',
++                            obscureText: true,
++                            errorText: controller.fieldErrors['password'],
++                          ),
++                          if (controller.message != null) ...[
++                            const SizedBox(height: 16),
++                            Text(
++                              controller.message!,
++                              textAlign: TextAlign.center,
++                              style: const TextStyle(color: AppColors.error),
++                            ),
++                          ],
++                          const SizedBox(height: 70),
++                          FilledButton(
++                            onPressed: controller.isLoading ? null : _submit,
++                            child: controller.isLoading
++                                ? const SizedBox.square(
++                                    dimension: 22,
++                                    child: CircularProgressIndicator(
++                                      strokeWidth: 2,
++                                      color: Colors.black,
++                                    ),
++                                  )
++                                : const Text('Sign In'),
++                          ),
++                          const SizedBox(height: 46),
++                          const Text(
++                            '-Or sign in with-',
++                            textAlign: TextAlign.center,
++                            style: TextStyle(
++                              color: AppColors.secondaryText,
++                              fontSize: 18,
++                            ),
++                          ),
++                          const SizedBox(height: 22),
++                          const Center(child: GoogleSignInButton()),
++                          const SizedBox(height: 72),
++                          TextButton(
++                            key: const Key('go_to_register_button'),
++                            onPressed: widget.onRegisterRequested,
++                            child: Text.rich(
++                              TextSpan(
++                                text: "Don't have an account? ",
++                                style: TextStyle(
++                                  color: Theme.of(
++                                    context,
++                                  ).colorScheme.onSurface,
++                                  fontSize: 16,
++                                ),
++                                children: const [
++                                  TextSpan(
++                                    text: 'Sign up',
++                                    style: TextStyle(color: AppColors.primary),
++                                  ),
++                                ],
++                              ),
++                            ),
++                          ),
++                        ],
++                      ),
++                    ],
++                  ),
++                ),
++              ),
++            );
++          },
++        ),
++      ),
++    );
++  }
++}
+diff --git a/lib/features/auth/presentation/pages/register_page.dart b/lib/features/auth/presentation/pages/register_page.dart
+index ef0f860..53f63dd 100644
+--- a/lib/features/auth/presentation/pages/register_page.dart
++++ b/lib/features/auth/presentation/pages/register_page.dart
+@@ -1,16 +1,24 @@
+ import 'package:flutter/material.dart';
+ 
++import '../../../../core/theme/app_colors.dart';
++import '../../../../core/theme/theme_controller.dart';
++import '../../../../shared/widgets/theme_mode_toggle.dart';
+ import '../controllers/register_controller.dart';
++import '../widgets/auth_background_mark.dart';
++import '../widgets/auth_text_field.dart';
++import '../widgets/google_sign_in_button.dart';
+ 
+ class RegisterPage extends StatefulWidget {
+   const RegisterPage({
+     super.key,
+     required this.controller,
++    required this.themeController,
+     required this.onRegistered,
+     this.onLoginRequested,
+   });
+ 
+   final RegisterController controller;
++  final ThemeController themeController;
+   final VoidCallback onRegistered;
+   final VoidCallback? onLoginRequested;
+ 
+@@ -59,196 +67,119 @@ class _RegisterPageState extends State<RegisterPage> {
+   @override
+   Widget build(BuildContext context) {
+     final controller = widget.controller;
++    final screenHeight = MediaQuery.sizeOf(context).height;
+ 
+     return Scaffold(
+-      backgroundColor: Colors.black,
+       body: SafeArea(
+-        child: SingleChildScrollView(
+-          padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 36),
+-          child: ConstrainedBox(
+-            constraints: BoxConstraints(
+-              minHeight: MediaQuery.sizeOf(context).height - 72,
+-            ),
+-            child: Column(
+-              crossAxisAlignment: CrossAxisAlignment.stretch,
+-              children: [
+-                const SizedBox(height: 72),
+-                const Text(
+-                  '¡Unete y encuentra\ntus peliculas!',
+-                  textAlign: TextAlign.center,
+-                  style: TextStyle(
+-                    color: Colors.white,
+-                    fontSize: 34,
+-                    height: 1.15,
+-                    fontWeight: FontWeight.w400,
++        child: LayoutBuilder(
++          builder: (context, constraints) {
++            final contentWidth = constraints.maxWidth.clamp(0.0, 420.0);
++            final logoSize = contentWidth * 0.95;
++
++            return SingleChildScrollView(
++              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
++              child: Center(
++                child: ConstrainedBox(
++                  constraints: BoxConstraints(
++                    maxWidth: 420,
++                    minHeight: screenHeight - 48,
+                   ),
+-                ),
+-                const SizedBox(height: 84),
+-                _RegisterTextField(
+-                  controller: _emailController,
+-                  hintText: 'Email',
+-                  keyboardType: TextInputType.emailAddress,
+-                  errorText: controller.fieldErrors['email'],
+-                ),
+-                const SizedBox(height: 24),
+-                _RegisterTextField(
+-                  controller: _passwordController,
+-                  hintText: 'Password',
+-                  obscureText: true,
+-                  errorText: controller.fieldErrors['password'],
+-                ),
+-                const SizedBox(height: 24),
+-                _RegisterTextField(
+-                  controller: _confirmPasswordController,
+-                  hintText: 'Confirm Password',
+-                  obscureText: true,
+-                  errorText: controller.fieldErrors['confirmPassword'],
+-                ),
+-                if (controller.message != null) ...[
+-                  const SizedBox(height: 16),
+-                  Text(
+-                    controller.message!,
+-                    textAlign: TextAlign.center,
+-                    style: const TextStyle(color: Color(0xFFFF8A80)),
+-                  ),
+-                ],
+-                const SizedBox(height: 60),
+-                SizedBox(
+-                  height: 66,
+-                  child: FilledButton(
+-                    onPressed: controller.isLoading ? null : _submit,
+-                    style: FilledButton.styleFrom(
+-                      backgroundColor: const Color(0xFF8CF241),
+-                      foregroundColor: Colors.black,
+-                      disabledBackgroundColor: const Color(
+-                        0xFF8CF241,
+-                      ).withValues(alpha: 0.5),
+-                      shape: RoundedRectangleBorder(
+-                        borderRadius: BorderRadius.circular(32),
++                  child: Stack(
++                    alignment: Alignment.topCenter,
++                    children: [
++                      Positioned(
++                        top: 205,
++                        child: AuthBackgroundMark(size: logoSize),
+                       ),
+-                    ),
+-                    child: controller.isLoading
+-                        ? const SizedBox.square(
+-                            dimension: 22,
+-                            child: CircularProgressIndicator(
+-                              strokeWidth: 2,
+-                              color: Colors.black,
++                      Column(
++                        crossAxisAlignment: CrossAxisAlignment.stretch,
++                        children: [
++                          Align(
++                            alignment: Alignment.centerRight,
++                            child: ThemeModeToggle(
++                              controller: widget.themeController,
+                             ),
+-                          )
+-                        : const Text('Sign up', style: TextStyle(fontSize: 18)),
+-                  ),
+-                ),
+-                const SizedBox(height: 70),
+-                const Text(
+-                  '-Or sign in with-',
+-                  textAlign: TextAlign.center,
+-                  style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 18),
+-                ),
+-                const SizedBox(height: 22),
+-                Center(
+-                  child: OutlinedButton.icon(
+-                    onPressed: null,
+-                    style: OutlinedButton.styleFrom(
+-                      disabledForegroundColor: Colors.white.withValues(
+-                        alpha: 0.45,
+-                      ),
+-                      side: BorderSide(
+-                        color: Colors.white.withValues(alpha: 0.45),
+-                      ),
+-                      shape: RoundedRectangleBorder(
+-                        borderRadius: BorderRadius.circular(24),
+-                      ),
+-                      padding: const EdgeInsets.symmetric(
+-                        horizontal: 16,
+-                        vertical: 10,
++                          ),
++                          SizedBox(height: screenHeight < 720 ? 46 : 78),
++                          Text(
++                            '¡Únete y encuentra\ntus películas!',
++                            textAlign: TextAlign.center,
++                            style: Theme.of(context).textTheme.headlineLarge,
++                          ),
++                          const SizedBox(height: 84),
++                          AuthTextField(
++                            controller: _emailController,
++                            hintText: 'Email',
++                            keyboardType: TextInputType.emailAddress,
++                            errorText: controller.fieldErrors['email'],
++                          ),
++                          const SizedBox(height: 24),
++                          AuthTextField(
++                            controller: _passwordController,
++                            hintText: 'Password',
++                            obscureText: true,
++                            errorText: controller.fieldErrors['password'],
++                          ),
++                          const SizedBox(height: 24),
++                          AuthTextField(
++                            controller: _confirmPasswordController,
++                            hintText: 'Confirm Password',
++                            obscureText: true,
++                            errorText:
++                                controller.fieldErrors['confirmPassword'],
++                          ),
++                          if (controller.message != null) ...[
++                            const SizedBox(height: 16),
++                            Text(
++                              controller.message!,
++                              textAlign: TextAlign.center,
++                              style: const TextStyle(color: AppColors.error),
++                            ),
++                          ],
++                          const SizedBox(height: 60),
++                          FilledButton(
++                            onPressed: controller.isLoading ? null : _submit,
++                            child: controller.isLoading
++                                ? const SizedBox.square(
++                                    dimension: 22,
++                                    child: CircularProgressIndicator(
++                                      strokeWidth: 2,
++                                      color: Colors.black,
++                                    ),
++                                  )
++                                : const Text('Sign up'),
++                          ),
++                          const SizedBox(height: 70),
++                          const Text(
++                            '-Or sign in with-',
++                            textAlign: TextAlign.center,
++                            style: TextStyle(
++                              color: AppColors.secondaryText,
++                              fontSize: 18,
++                            ),
++                          ),
++                          const SizedBox(height: 22),
++                          const Center(child: GoogleSignInButton()),
++                          if (widget.onLoginRequested != null) ...[
++                            const SizedBox(height: 36),
++                            TextButton(
++                              onPressed: widget.onLoginRequested,
++                              child: const Text(
++                                'Already have an account? Sign in',
++                                style: TextStyle(color: AppColors.primary),
++                              ),
++                            ),
++                          ],
++                        ],
+                       ),
+-                    ),
+-                    icon: const _GoogleMark(),
+-                    label: const Text('Google'),
++                    ],
+                   ),
+                 ),
+-                const SizedBox(height: 40),
+-                if (widget.onLoginRequested != null)
+-                  TextButton(
+-                    onPressed: widget.onLoginRequested,
+-                    child: const Text(
+-                      'Already have an account? Sign in',
+-                      style: TextStyle(color: Color(0xFF8CF241)),
+-                    ),
+-                  ),
+-              ],
+-            ),
+-          ),
++              ),
++            );
++          },
+         ),
+       ),
+     );
+   }
+ }
+-
+-class _RegisterTextField extends StatelessWidget {
+-  const _RegisterTextField({
+-    required this.controller,
+-    required this.hintText,
+-    this.keyboardType,
+-    this.obscureText = false,
+-    this.errorText,
+-  });
+-
+-  final TextEditingController controller;
+-  final String hintText;
+-  final TextInputType? keyboardType;
+-  final bool obscureText;
+-  final String? errorText;
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return TextField(
+-      controller: controller,
+-      keyboardType: keyboardType,
+-      obscureText: obscureText,
+-      style: const TextStyle(color: Colors.white, fontSize: 18),
+-      decoration: InputDecoration(
+-        hintText: hintText,
+-        hintStyle: const TextStyle(color: Color(0xFF9E9E9E)),
+-        errorText: errorText,
+-        errorStyle: const TextStyle(color: Color(0xFFFF8A80)),
+-        contentPadding: const EdgeInsets.symmetric(
+-          horizontal: 16,
+-          vertical: 20,
+-        ),
+-        enabledBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(8),
+-          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+-        ),
+-        focusedBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(8),
+-          borderSide: const BorderSide(color: Color(0xFF8CF241), width: 1.5),
+-        ),
+-        errorBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(8),
+-          borderSide: const BorderSide(color: Color(0xFFFF8A80)),
+-        ),
+-        focusedErrorBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(8),
+-          borderSide: const BorderSide(color: Color(0xFFFF8A80), width: 1.5),
+-        ),
+-      ),
+-    );
+-  }
+-}
+-
+-class _GoogleMark extends StatelessWidget {
+-  const _GoogleMark();
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return const Text(
+-      'G',
+-      style: TextStyle(
+-        color: Color(0xFF4285F4),
+-        fontSize: 22,
+-        fontWeight: FontWeight.w700,
+-      ),
+-    );
+-  }
+-}
+diff --git a/lib/features/auth/presentation/widgets/auth_background_mark.dart b/lib/features/auth/presentation/widgets/auth_background_mark.dart
+new file mode 100644
+index 0000000..fdc48db
+--- /dev/null
++++ b/lib/features/auth/presentation/widgets/auth_background_mark.dart
+@@ -0,0 +1,27 @@
++import 'package:flutter/material.dart';
++
++import '../../../../core/theme/app_colors.dart';
++import '../../../../shared/widgets/movie_finder_logo.dart';
++
++class AuthBackgroundMark extends StatelessWidget {
++  const AuthBackgroundMark({super.key, required this.size});
++
++  final double size;
++
++  @override
++  Widget build(BuildContext context) {
++    final isDark = Theme.of(context).brightness == Brightness.dark;
++
++    return IgnorePointer(
++      child: AnimatedOpacity(
++        duration: const Duration(milliseconds: 350),
++        opacity: 1,
++        child: MovieFinderLogo(
++          size: size,
++          color: isDark ? AppColors.darkPrimary : AppColors.primary,
++          opacity: isDark ? 0.65 : 0.24,
++        ),
++      ),
++    );
++  }
++}
+diff --git a/lib/features/auth/presentation/widgets/auth_text_field.dart b/lib/features/auth/presentation/widgets/auth_text_field.dart
+new file mode 100644
+index 0000000..be557df
+--- /dev/null
++++ b/lib/features/auth/presentation/widgets/auth_text_field.dart
+@@ -0,0 +1,32 @@
++import 'package:flutter/material.dart';
++
++class AuthTextField extends StatelessWidget {
++  const AuthTextField({
++    super.key,
++    required this.controller,
++    required this.hintText,
++    this.keyboardType,
++    this.obscureText = false,
++    this.errorText,
++  });
++
++  final TextEditingController controller;
++  final String hintText;
++  final TextInputType? keyboardType;
++  final bool obscureText;
++  final String? errorText;
++
++  @override
++  Widget build(BuildContext context) {
++    return TextField(
++      controller: controller,
++      keyboardType: keyboardType,
++      obscureText: obscureText,
++      style: TextStyle(
++        color: Theme.of(context).colorScheme.onSurface,
++        fontSize: 18,
++      ),
++      decoration: InputDecoration(hintText: hintText, errorText: errorText),
++    );
++  }
++}
+diff --git a/lib/features/auth/presentation/widgets/google_sign_in_button.dart b/lib/features/auth/presentation/widgets/google_sign_in_button.dart
+new file mode 100644
+index 0000000..511f740
+--- /dev/null
++++ b/lib/features/auth/presentation/widgets/google_sign_in_button.dart
+@@ -0,0 +1,42 @@
++import 'package:flutter/material.dart';
++
++class GoogleSignInButton extends StatelessWidget {
++  const GoogleSignInButton({super.key, this.onPressed});
++
++  final VoidCallback? onPressed;
++
++  @override
++  Widget build(BuildContext context) {
++    final isDark = Theme.of(context).brightness == Brightness.dark;
++    final foreground = isDark ? Colors.white : Colors.black;
++
++    return OutlinedButton.icon(
++      onPressed: onPressed,
++      style: OutlinedButton.styleFrom(
++        foregroundColor: foreground,
++        disabledForegroundColor: foreground.withValues(alpha: 0.45),
++        side: BorderSide(color: foreground.withValues(alpha: 0.45)),
++        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
++        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
++      ),
++      icon: const _GoogleMark(),
++      label: const Text('Google'),
++    );
++  }
++}
++
++class _GoogleMark extends StatelessWidget {
++  const _GoogleMark();
++
++  @override
++  Widget build(BuildContext context) {
++    return const Text(
++      'G',
++      style: TextStyle(
++        color: Color(0xFF4285F4),
++        fontSize: 22,
++        fontWeight: FontWeight.w700,
++      ),
++    );
++  }
++}
+diff --git a/lib/features/intro/presentation/pages/intro_page.dart b/lib/features/intro/presentation/pages/intro_page.dart
+new file mode 100644
+index 0000000..52481a2
+--- /dev/null
++++ b/lib/features/intro/presentation/pages/intro_page.dart
+@@ -0,0 +1,89 @@
++import 'dart:async';
++
++import 'package:flutter/material.dart';
++
++import '../../../../core/theme/app_colors.dart';
++import '../../../../shared/widgets/movie_finder_logo.dart';
++
++class IntroPage extends StatefulWidget {
++  const IntroPage({super.key, required this.onFinished});
++
++  final VoidCallback onFinished;
++
++  @override
++  State<IntroPage> createState() => _IntroPageState();
++}
++
++class _IntroPageState extends State<IntroPage>
++    with SingleTickerProviderStateMixin {
++  late final AnimationController _animationController;
++  late final Animation<double> _fadeAnimation;
++  late final Animation<double> _scaleAnimation;
++  late final Animation<Offset> _labelOffsetAnimation;
++  Timer? _finishTimer;
++
++  @override
++  void initState() {
++    super.initState();
++    _animationController = AnimationController(
++      vsync: this,
++      duration: const Duration(milliseconds: 900),
++    );
++    _fadeAnimation = CurvedAnimation(
++      parent: _animationController,
++      curve: Curves.easeOut,
++    );
++    _scaleAnimation = Tween<double>(begin: 0.92, end: 1).animate(
++      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
++    );
++    _labelOffsetAnimation =
++        Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero).animate(
++          CurvedAnimation(
++            parent: _animationController,
++            curve: Curves.easeOutCubic,
++          ),
++        );
++
++    _animationController.forward();
++    _finishTimer = Timer(const Duration(milliseconds: 1800), () {
++      if (mounted) {
++        widget.onFinished();
++      }
++    });
++  }
++
++  @override
++  void dispose() {
++    _finishTimer?.cancel();
++    _animationController.dispose();
++    super.dispose();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final isDark = Theme.of(context).brightness == Brightness.dark;
++    final size = MediaQuery.sizeOf(context);
++    final logoSize = (size.shortestSide * 0.8).clamp(260.0, 380.0);
++
++    return Scaffold(
++      body: Center(
++        child: FadeTransition(
++          opacity: _fadeAnimation,
++          child: ScaleTransition(
++            scale: _scaleAnimation,
++            child: SlideTransition(
++              position: _labelOffsetAnimation,
++              child: MovieFinderLogo(
++                size: logoSize,
++                color: isDark ? AppColors.darkPrimary : AppColors.primary,
++                opacity: isDark ? 0.8 : 0.28,
++                showLabel: true,
++                labelColor: AppColors.primary,
++              ),
++            ),
++          ),
++        ),
++      ),
++    );
++  }
++}
+diff --git a/lib/main.dart b/lib/main.dart
+index 7b996f6..a01e4ed 100644
+--- a/lib/main.dart
++++ b/lib/main.dart
+@@ -1,11 +1,18 @@
+ import 'package:flutter/material.dart';
+ 
++import 'core/theme/app_theme.dart';
++import 'core/theme/theme_controller.dart';
+ import 'core/storage/token_storage.dart';
+ import 'features/auth/data/datasources/auth_mock_data_source.dart';
+ import 'features/auth/data/repositories/auth_repository_impl.dart';
++import 'features/auth/domain/entities/authenticated_user.dart';
++import 'features/auth/domain/usecases/login_user.dart';
+ import 'features/auth/domain/usecases/register_user.dart';
++import 'features/auth/presentation/controllers/login_controller.dart';
+ import 'features/auth/presentation/controllers/register_controller.dart';
++import 'features/auth/presentation/pages/login_page.dart';
+ import 'features/auth/presentation/pages/register_page.dart';
++import 'features/intro/presentation/pages/intro_page.dart';
+ 
+ void main() {
+   runApp(const MovieFinderApp());
+@@ -20,54 +27,109 @@ class MovieFinderApp extends StatefulWidget {
+ 
+ class _MovieFinderAppState extends State<MovieFinderApp> {
+   late final TokenStorage _tokenStorage;
++  late final ThemeController _themeController;
++  late final LoginController _loginController;
+   late final RegisterController _registerController;
+ 
+-  bool _isRegistered = false;
++  AppScreen _screen = AppScreen.intro;
++  AuthenticatedUser? _authenticatedUser;
+ 
+   @override
+   void initState() {
+     super.initState();
+     _tokenStorage = TokenStorage();
++    _themeController = ThemeController();
+     final authRepository = AuthRepositoryImpl(
+       const AuthMockDataSource(),
+       _tokenStorage,
+     );
++    _loginController = LoginController(LoginUser(authRepository));
+     _registerController = RegisterController(RegisterUser(authRepository));
+   }
+ 
+   @override
+   void dispose() {
++    _themeController.dispose();
++    _loginController.dispose();
+     _registerController.dispose();
+     super.dispose();
+   }
+ 
+   @override
+   Widget build(BuildContext context) {
+-    return MaterialApp(
+-      title: 'MovieFinder',
+-      debugShowCheckedModeBanner: false,
+-      theme: ThemeData(
+-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8CF241)),
+-        useMaterial3: true,
+-      ),
+-      home: _isRegistered
+-          ? _HomePlaceholder(
+-              username: _registerController.registeredUser?.username ?? 'user',
+-            )
+-          : RegisterPage(
+-              controller: _registerController,
+-              onRegistered: () {
+-                setState(() {
+-                  _isRegistered = true;
+-                });
+-              },
+-            ),
++    return AnimatedBuilder(
++      animation: _themeController,
++      builder: (context, _) {
++        return MaterialApp(
++          title: 'MovieFinder',
++          debugShowCheckedModeBanner: false,
++          theme: AppTheme.light,
++          darkTheme: AppTheme.dark,
++          themeMode: _themeController.themeMode,
++          home: AnimatedSwitcher(
++            duration: const Duration(milliseconds: 250),
++            transitionBuilder: (child, animation) {
++              final offsetAnimation = Tween<Offset>(
++                begin: const Offset(0, 0.03),
++                end: Offset.zero,
++              ).animate(animation);
++
++              return FadeTransition(
++                opacity: animation,
++                child: SlideTransition(position: offsetAnimation, child: child),
++              );
++            },
++            child: _buildScreen(),
++          ),
++        );
++      },
+     );
+   }
++
++  Widget _buildScreen() {
++    return switch (_screen) {
++      AppScreen.intro => IntroPage(
++        key: const ValueKey(AppScreen.intro),
++        onFinished: () => _showScreen(AppScreen.login),
++      ),
++      AppScreen.login => LoginPage(
++        key: const ValueKey(AppScreen.login),
++        controller: _loginController,
++        themeController: _themeController,
++        onLoggedIn: () {
++          _authenticatedUser = _loginController.authenticatedUser;
++          _showScreen(AppScreen.home);
++        },
++        onRegisterRequested: () => _showScreen(AppScreen.register),
++      ),
++      AppScreen.register => RegisterPage(
++        key: const ValueKey(AppScreen.register),
++        controller: _registerController,
++        themeController: _themeController,
++        onRegistered: () {
++          _authenticatedUser = _registerController.registeredUser;
++          _showScreen(AppScreen.home);
++        },
++        onLoginRequested: () => _showScreen(AppScreen.login),
++      ),
++      AppScreen.home => _HomePlaceholder(
++        key: const ValueKey(AppScreen.home),
++        username: _authenticatedUser?.username ?? 'user',
++      ),
++    };
++  }
++
++  void _showScreen(AppScreen screen) {
++    setState(() {
++      _screen = screen;
++    });
++  }
+ }
+ 
++enum AppScreen { intro, login, register, home }
++
+ class _HomePlaceholder extends StatelessWidget {
+-  const _HomePlaceholder({required this.username});
++  const _HomePlaceholder({super.key, required this.username});
+ 
+   final String username;
+ 
+diff --git a/lib/shared/widgets/movie_finder_logo.dart b/lib/shared/widgets/movie_finder_logo.dart
+new file mode 100644
+index 0000000..78c281f
+--- /dev/null
++++ b/lib/shared/widgets/movie_finder_logo.dart
+@@ -0,0 +1,110 @@
++import 'package:flutter/material.dart';
++
++import '../../core/theme/app_colors.dart';
++
++class MovieFinderLogo extends StatelessWidget {
++  const MovieFinderLogo({
++    super.key,
++    this.size = 260,
++    this.color = AppColors.primary,
++    this.opacity = 1,
++    this.showLabel = false,
++    this.labelColor,
++  });
++
++  final double size;
++  final Color color;
++  final double opacity;
++  final bool showLabel;
++  final Color? labelColor;
++
++  @override
++  Widget build(BuildContext context) {
++    final effectiveColor = color.withValues(alpha: opacity);
++
++    return Column(
++      mainAxisSize: MainAxisSize.min,
++      children: [
++        SizedBox.square(
++          dimension: size,
++          child: CustomPaint(
++            painter: MovieFinderLogoPainter(color: effectiveColor),
++          ),
++        ),
++        if (showLabel) ...[
++          SizedBox(height: size * 0.04),
++          Text(
++            'MovieApp',
++            style: TextStyle(
++              color: labelColor ?? AppColors.primary,
++              fontSize: size * 0.13,
++              letterSpacing: 2,
++              fontFamily: 'monospace',
++              fontWeight: FontWeight.w400,
++            ),
++          ),
++        ],
++      ],
++    );
++  }
++}
++
++class MovieFinderLogoPainter extends CustomPainter {
++  const MovieFinderLogoPainter({required this.color});
++
++  final Color color;
++
++  @override
++  void paint(Canvas canvas, Size size) {
++    final paint = Paint()
++      ..color = color
++      ..style = PaintingStyle.fill;
++    final w = size.width;
++    final h = size.height;
++
++    canvas.drawCircle(Offset(w * 0.13, h * 0.16), w * 0.1, paint);
++
++    final iBody = Path()
++      ..moveTo(w * 0.03, h * 0.42)
++      ..lineTo(w * 0.23, h * 0.30)
++      ..lineTo(w * 0.23, h * 0.78)
++      ..lineTo(w * 0.03, h * 0.92)
++      ..close();
++    canvas.drawPath(iBody, paint);
++
++    final leftStem = Path()
++      ..moveTo(w * 0.28, h * 0.22)
++      ..lineTo(w * 0.46, h * 0.22)
++      ..lineTo(w * 0.56, h * 0.56)
++      ..lineTo(w * 0.47, h * 0.74)
++      ..lineTo(w * 0.38, h * 0.43)
++      ..lineTo(w * 0.38, h * 0.90)
++      ..lineTo(w * 0.28, h * 0.90)
++      ..close();
++    canvas.drawPath(leftStem, paint);
++
++    final middle = Path()
++      ..moveTo(w * 0.46, h * 0.22)
++      ..lineTo(w * 0.66, h * 0.22)
++      ..lineTo(w * 0.53, h * 0.78)
++      ..lineTo(w * 0.47, h * 0.74)
++      ..lineTo(w * 0.56, h * 0.56)
++      ..close();
++    canvas.drawPath(middle, paint);
++
++    final rightStem = Path()
++      ..moveTo(w * 0.66, h * 0.22)
++      ..lineTo(w * 0.97, h * 0.22)
++      ..lineTo(w * 0.97, h * 0.90)
++      ..lineTo(w * 0.78, h * 0.90)
++      ..lineTo(w * 0.78, h * 0.44)
++      ..lineTo(w * 0.53, h * 0.78)
++      ..close();
++    canvas.drawPath(rightStem, paint);
++  }
++
++  @override
++  bool shouldRepaint(MovieFinderLogoPainter oldDelegate) {
++    return oldDelegate.color != color;
++  }
++}
+diff --git a/lib/shared/widgets/theme_mode_toggle.dart b/lib/shared/widgets/theme_mode_toggle.dart
+new file mode 100644
+index 0000000..6600f7d
+--- /dev/null
++++ b/lib/shared/widgets/theme_mode_toggle.dart
+@@ -0,0 +1,67 @@
++import 'package:flutter/material.dart';
++
++import '../../core/theme/app_colors.dart';
++import '../../core/theme/theme_controller.dart';
++
++class ThemeModeToggle extends StatelessWidget {
++  const ThemeModeToggle({super.key, required this.controller});
++
++  final ThemeController controller;
++
++  @override
++  Widget build(BuildContext context) {
++    return AnimatedBuilder(
++      animation: controller,
++      builder: (context, _) {
++        final themeMode = controller.themeMode;
++        final isDark = Theme.of(context).brightness == Brightness.dark;
++
++        return Semantics(
++          button: true,
++          label: 'Cambiar tema',
++          child: InkWell(
++            borderRadius: BorderRadius.circular(24),
++            onTap: controller.cycleThemeMode,
++            child: AnimatedContainer(
++              duration: const Duration(milliseconds: 220),
++              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
++              decoration: BoxDecoration(
++                color: isDark
++                    ? Colors.white.withValues(alpha: 0.1)
++                    : Colors.black.withValues(alpha: 0.06),
++                borderRadius: BorderRadius.circular(24),
++                border: Border.all(
++                  color: isDark
++                      ? Colors.white.withValues(alpha: 0.25)
++                      : Colors.black.withValues(alpha: 0.18),
++                ),
++              ),
++              child: AnimatedSwitcher(
++                duration: const Duration(milliseconds: 180),
++                transitionBuilder: (child, animation) {
++                  return ScaleTransition(scale: animation, child: child);
++                },
++                child: Icon(
++                  _iconFor(themeMode),
++                  key: ValueKey(themeMode),
++                  color: themeMode == ThemeMode.system
++                      ? Theme.of(context).colorScheme.onSurface
++                      : AppColors.primary,
++                  size: 22,
++                ),
++              ),
++            ),
++          ),
++        );
++      },
++    );
++  }
++
++  IconData _iconFor(ThemeMode themeMode) {
++    return switch (themeMode) {
++      ThemeMode.system => Icons.brightness_auto,
++      ThemeMode.light => Icons.light_mode,
++      ThemeMode.dark => Icons.dark_mode,
++    };
++  }
++}
+diff --git a/test/widget_test.dart b/test/widget_test.dart
+index e37c300..f024e5b 100644
+--- a/test/widget_test.dart
++++ b/test/widget_test.dart
+@@ -1,13 +1,36 @@
++import 'package:flutter/material.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+ import 'package:moviefinder/main.dart';
+ 
+ void main() {
+-  testWidgets('renders register page', (WidgetTester tester) async {
++  testWidgets('renders intro then login page', (WidgetTester tester) async {
+     await tester.pumpWidget(const MovieFinderApp());
+ 
+-    expect(find.text('¡Unete y encuentra\ntus peliculas!'), findsOneWidget);
+-    expect(find.text('Sign up'), findsOneWidget);
++    expect(find.text('MovieApp'), findsOneWidget);
++
++    await tester.pump(const Duration(milliseconds: 1800));
++    await tester.pumpAndSettle();
++
++    expect(find.text('¡Bienvenido!'), findsOneWidget);
++    expect(find.text('Sign In'), findsOneWidget);
+     expect(find.text('Google'), findsOneWidget);
+   });
++
++  testWidgets('navigates from login to register page', (
++    WidgetTester tester,
++  ) async {
++    await tester.pumpWidget(const MovieFinderApp());
++    await tester.pump(const Duration(milliseconds: 1800));
++    await tester.pumpAndSettle();
++
++    final registerButton = find.byKey(const Key('go_to_register_button'));
++    await tester.ensureVisible(registerButton);
++    await tester.pumpAndSettle();
++    await tester.tap(registerButton);
++    await tester.pumpAndSettle();
++
++    expect(find.text('¡Únete y encuentra\ntus películas!'), findsOneWidget);
++    expect(find.text('Confirm Password'), findsOneWidget);
++  });
+ }
