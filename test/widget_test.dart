@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:moviefinder/main.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('renders intro then login page', (WidgetTester tester) async {
     await tester.pumpWidget(const MovieFinderApp());
 
@@ -32,5 +37,19 @@ void main() {
 
     expect(find.text('¡Únete y encuentra\ntus películas!'), findsOneWidget);
     expect(find.text('Confirm Password'), findsOneWidget);
+  });
+
+  testWidgets('restores mock session from stored token', (
+    WidgetTester tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
+
+    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Bienvenido, mock.user. Home se implementara en CU-04.'),
+      findsOneWidget,
+    );
   });
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'core/result/result.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/storage/token_storage.dart';
 import 'features/auth/data/datasources/auth_mock_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/entities/authenticated_user.dart';
+import 'features/auth/domain/usecases/get_current_user.dart';
 import 'features/auth/domain/usecases/login_user.dart';
 import 'features/auth/domain/usecases/register_user.dart';
 import 'features/auth/presentation/controllers/login_controller.dart';
@@ -28,6 +30,7 @@ class MovieFinderApp extends StatefulWidget {
 class _MovieFinderAppState extends State<MovieFinderApp> {
   late final TokenStorage _tokenStorage;
   late final ThemeController _themeController;
+  late final GetCurrentUser _getCurrentUser;
   late final LoginController _loginController;
   late final RegisterController _registerController;
 
@@ -43,8 +46,10 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
       const AuthMockDataSource(),
       _tokenStorage,
     );
+    _getCurrentUser = GetCurrentUser(authRepository);
     _loginController = LoginController(LoginUser(authRepository));
     _registerController = RegisterController(RegisterUser(authRepository));
+    _restoreSession();
   }
 
   @override
@@ -90,7 +95,11 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     return switch (_screen) {
       AppScreen.intro => IntroPage(
         key: const ValueKey(AppScreen.intro),
-        onFinished: () => _showScreen(AppScreen.login),
+        onFinished: () {
+          if (_authenticatedUser == null) {
+            _showScreen(AppScreen.login);
+          }
+        },
       ),
       AppScreen.login => LoginPage(
         key: const ValueKey(AppScreen.login),
@@ -123,6 +132,26 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     setState(() {
       _screen = screen;
     });
+  }
+
+  Future<void> _restoreSession() async {
+    final result = await _getCurrentUser();
+
+    if (!mounted) {
+      return;
+    }
+
+    switch (result) {
+      case Success<AuthenticatedUser?>(value: final user):
+        if (user != null) {
+          setState(() {
+            _authenticatedUser = user;
+            _screen = AppScreen.home;
+          });
+        }
+      case Failure<AuthenticatedUser?>():
+        break;
+    }
   }
 }
 

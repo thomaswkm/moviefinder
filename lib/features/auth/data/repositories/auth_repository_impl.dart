@@ -9,8 +9,33 @@ import '../models/register_request_model.dart';
 class AuthRepositoryImpl implements AuthRepository {
   const AuthRepositoryImpl(this._dataSource, this._tokenStorage);
 
+  static const _mockToken = 'mock-jwt-token';
+
   final AuthDataSource _dataSource;
   final TokenStorage _tokenStorage;
+
+  @override
+  Future<Result<AuthenticatedUser?>> getCurrentUser() async {
+    final token = await _tokenStorage.readToken();
+
+    if (token == null) {
+      return const Success(null);
+    }
+
+    if (token != _mockToken) {
+      await _tokenStorage.clearToken();
+      return const Failure('La sesion expiro. Inicia sesion nuevamente.');
+    }
+
+    return const Success(
+      AuthenticatedUser(
+        id: 1,
+        email: 'mock.user@moviefinder.local',
+        username: 'mock.user',
+        token: _mockToken,
+      ),
+    );
+  }
 
   @override
   Future<Result<AuthenticatedUser>> login({
@@ -46,6 +71,11 @@ class AuthRepositoryImpl implements AuthRepository {
     } on Exception {
       return const Failure('No se pudo crear la cuenta. Intentalo nuevamente.');
     }
+  }
+
+  @override
+  Future<void> logout() {
+    return _tokenStorage.clearToken();
   }
 
   String _usernameFromEmail(String email) {
