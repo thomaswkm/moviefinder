@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/movie.dart';
+import '../../domain/entities/media_item.dart';
 
-class FeaturedMovieCard extends StatelessWidget {
-  const FeaturedMovieCard({
+class FeaturedMediaCard extends StatelessWidget {
+  const FeaturedMediaCard({
     super.key,
-    required this.movie,
+    required this.item,
     required this.scale,
     required this.onTap,
   });
 
-  final Movie movie;
+  final MediaItem item;
   final double scale;
   final VoidCallback onTap;
 
@@ -28,7 +28,7 @@ class FeaturedMovieCard extends StatelessWidget {
               color: AppColors.secondaryText.withValues(alpha: 0.18),
             ),
             child: Image.asset(
-              movie.posterAssetPath,
+              item.posterAssetPath,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return const Center(

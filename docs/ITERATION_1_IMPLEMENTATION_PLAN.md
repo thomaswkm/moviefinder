@@ -13,8 +13,8 @@ La primera iteracion abarca estos casos de uso:
 | CU-01 | Registrar usuario | `Register.png` | Incluido |
 | CU-02 | Iniciar sesion | `Login.png` | Incluido |
 | CU-03 | Restaurar sesion | No aplica | Incluido |
-| CU-04 | Ver peliculas | `Home.png` | Incluido |
-| CU-05 | Buscar peliculas | `Home.png` | Incluido basico |
+| CU-04 | Ver catalogo | `Home.png` | Incluido |
+| CU-05 | Buscar contenido | `Home.png` | Incluido basico |
 | CU-06 | Ver detalle de pelicula | `Information.png` | Incluido |
 | CU-07 | Ver plataformas de una pelicula | `Information.png` | Incluido dentro del detalle |
 
@@ -381,11 +381,11 @@ type CurrentUserDto = {
 - Si existe token valido, la app entra directo a Home.
 - Si el token es invalido, se limpia y se muestra Login.
 
-## CU-04 - Ver Peliculas
+## CU-04 - Ver Catalogo
 
 ### Objetivo
 
-Mostrar una pantalla Home con peliculas, inspirada en `Home.png`.
+Mostrar una pantalla Home con peliculas y series, inspirada en `Home.png`.
 
 ### Actor
 
@@ -436,11 +436,12 @@ type MovieSearchItemDto = {
 
 ### Datos Mock Requeridos
 
-Crear al menos 8 peliculas mock con:
+Crear al menos 8 items de catalogo mock con:
 
 | Campo | Uso UI |
 | --- | --- |
-| `tmdbId` | Navegacion a detalle. |
+| `id` | Navegacion a detalle. |
+| `type` | Distingue pelicula o serie. |
 | `title` | Titulo de card. |
 | `overview` | Preview o detalle posterior. |
 | `posterPath` | Placeholder o asset remoto futuro. |
@@ -448,17 +449,19 @@ Crear al menos 8 peliculas mock con:
 | `releaseDate` | Año mostrado. |
 | `genreIds` o generos mock | Chips visuales. |
 | `popularity` | Ordenamiento mock opcional. |
+| `durationMinutes` | Chip de duracion para peliculas. |
+| `seasonsCount` / `episodesCount` | Chips y detalle para series. |
 
 ### Flujo Principal
 
 1. Usuario llega a Home despues de login/register/restauracion de sesion.
 2. Controller ejecuta `SearchMovies` con query inicial fija `movie` y `page = 1`.
-3. En modo mock, `MoviesMockDataSource` devuelve lista estatica.
-4. En modo API real, `MoviesRemoteDataSource` llama `/api/catalog/search`.
-5. UI muestra pelicula destacada y seccion `For you`.
+3. En modo mock, `MediaMockDataSource` devuelve lista estatica.
+4. En modo API real, `MediaRemoteDataSource` llama `/api/catalog/search`.
+5. UI muestra contenido destacado y seccion `For you`.
 6. Usuario puede desplazarse por la lista.
-7. Usuario toca una pelicula.
-8. App navega a detalle con `tmdbId`.
+7. Usuario toca un item de catalogo.
+8. App navega a detalle con `id` y `type`.
 
 ### Flujo Alternativo - Sin Resultados
 
@@ -475,26 +478,27 @@ Crear al menos 8 peliculas mock con:
 
 | Capa | Componente |
 | --- | --- |
-| Domain | `MovieSummary` |
-| Domain | `MoviesRepository` |
-| Domain | `SearchMovies` |
-| Data | `MovieSearchResponseModel` |
-| Data | `MovieSearchItemModel` |
-| Data | `MoviesRemoteDataSource` |
-| Data | `MoviesMockDataSource` |
-| Data | `MoviesRepositoryImpl` |
+| Domain | `MediaItem` |
+| Domain | `MediaType` |
+| Domain | `MediaRepository` |
+| Domain | `GetHomeMediaItems` |
+| Data | `MediaItemModel` |
+| Data | `MediaRemoteDataSource` |
+| Data | `MediaMockDataSource` |
+| Data | `MediaRepositoryImpl` |
 | Presentation | `HomeController` |
 | Presentation | `HomePage` |
-| Presentation | `MovieCard` |
-| Presentation | `FeaturedMovieCard` |
+| Presentation | `MediaCard` |
+| Presentation | `FeaturedMediaCard` |
 | Presentation | `MainBottomNavigation` |
 
 ### Criterios De Aceptacion
 
-- Home carga peliculas mock por defecto.
+- Home carga contenido mock por defecto.
+- Home soporta peliculas y series mediante `MediaType`.
 - Se usa una query inicial fija para simular el catalogo.
 - La UI respeta el layout general de `Home.png`.
-- Al tocar una pelicula, navega al detalle.
+- Al tocar un item de catalogo, navega al detalle.
 - La infraestructura remota queda lista para consumir `/api/catalog/search`.
 
 ## CU-05 - Buscar Peliculas
@@ -562,11 +566,11 @@ En modo API real:
 - Si la query queda vacia, vuelve el listado inicial.
 - La estructura queda preparada para paginacion real.
 
-## CU-06 - Ver Detalle De Pelicula
+## CU-06 - Ver Detalle De Contenido
 
 ### Objetivo
 
-Mostrar informacion detallada de una pelicula seleccionada, basada en `Information.png`.
+Mostrar informacion detallada de una pelicula o serie seleccionada, basada en `Information.png`.
 
 ### Actor
 
@@ -615,34 +619,36 @@ type GenreDto = {
 
 ### Datos Mock Requeridos
 
-Cada pelicula mock debe tener detalle asociado:
+Cada item de catalogo mock debe tener detalle asociado:
 
 | Campo | Uso UI |
 | --- | --- |
-| `tmdbId` | Identificador. |
+| `id` | Identificador. |
+| `type` | Distingue pelicula o serie. |
 | `title` | Titulo principal. |
 | `overview` | Sinopsis. |
 | `posterPath` | Imagen vertical. |
 | `backdropPath` | Imagen superior. |
 | `releaseDate` | Fecha o año. |
 | `runtimeMinutes` | Duracion. |
+| `seasonsCount` / `episodesCount` | Metadata especifica de series. |
 | `voteAverage` | Rating. |
 | `genres` | Chips visuales. |
 
 ### Flujo Principal
 
-1. Usuario toca una pelicula desde Home.
-2. Router abre pantalla detalle con `tmdbId`.
-3. Controller ejecuta `GetMovieDetails`.
-4. En modo mock, `MoviesMockDataSource` busca detalle por `tmdbId`.
-5. En modo API real, `MoviesRemoteDataSource` llama `/api/catalog/details/{tmdbId}`.
+1. Usuario toca un item de catalogo desde Home.
+2. Router abre pantalla detalle con `id` y `type`.
+3. Controller ejecuta `GetMediaDetails`.
+4. En modo mock, `MediaMockDataSource` busca detalle por `id` y `type`.
+5. En modo API real, `MediaRemoteDataSource` llama `/api/catalog/details/{id}` o el endpoint equivalente.
 6. UI muestra backdrop, titulo, fecha, generos, duracion, rating y sinopsis.
 7. Controller ejecuta tambien `GetStreamingSources` para plataformas.
 8. UI muestra plataformas disponibles.
 
-### Flujo Alternativo - Pelicula No Encontrada En Mock
+### Flujo Alternativo - Contenido No Encontrado En Mock
 
-1. Mock datasource no encuentra `tmdbId`.
+1. Mock datasource no encuentra `id` y `type`.
 2. Controller expone error.
 3. UI muestra mensaje y boton volver.
 
@@ -666,23 +672,23 @@ Cada pelicula mock debe tener detalle asociado:
 
 | Capa | Componente |
 | --- | --- |
-| Domain | `MovieDetails` |
+| Domain | `MediaDetails` |
 | Domain | `Genre` |
-| Domain | `GetMovieDetails` |
-| Data | `MovieDetailsModel` |
+| Domain | `GetMediaDetails` |
+| Data | `MediaDetailsModel` |
 | Data | `GenreModel` |
-| Presentation | `MovieDetailController` |
-| Presentation | `MovieDetailPage` |
-| Presentation | `MovieGenreChip` |
-| Presentation | `MovieBackdropHeader` |
+| Presentation | `MediaDetailController` |
+| Presentation | `MediaDetailPage` |
+| Presentation | `MediaGenreChip` |
+| Presentation | `MediaBackdropHeader` |
 
 ### Criterios De Aceptacion
 
 - El usuario puede abrir detalle desde Home.
-- El detalle muestra informacion mock consistente con la pelicula seleccionada.
+- El detalle muestra informacion mock consistente con el contenido seleccionado.
 - Se muestra sinopsis, generos, duracion y rating.
 - Los campos no disponibles en API actual, como director y reparto, no se muestran en esta iteracion.
-- La infraestructura remota queda lista para consumir `/api/catalog/details/{tmdbId}`.
+- La infraestructura remota queda lista para consumir `/api/catalog/details/{id}` o el endpoint equivalente.
 
 ## CU-07 - Ver Plataformas De Una Pelicula
 
@@ -736,7 +742,7 @@ Crear plataformas mock por pelicula:
 
 ### Flujo Principal
 
-1. Pantalla detalle recibe `tmdbId`.
+1. Pantalla detalle recibe `id` y `type`.
 2. Controller ejecuta `GetStreamingSources`.
 3. En modo mock, `StreamingMockDataSource` devuelve plataformas estaticas.
 4. En modo API real, `StreamingRemoteDataSource` llama `/api/streaming/{tmdbId}`.
@@ -778,7 +784,7 @@ Crear plataformas mock por pelicula:
 | `/login` | `LoginPage` | Publico |
 | `/register` | `RegisterPage` | Publico |
 | `/home` | `HomePage` | Requiere sesion |
-| `/movie/:tmdbId` | `MovieDetailPage` | Requiere sesion |
+| `/media/:type/:id` | `MediaDetailPage` | Requiere sesion |
 
 ### Flujo De Navegacion
 
@@ -796,9 +802,9 @@ Register
   -> exito -> Home
 
 Home
-  -> tap pelicula -> MovieDetail
+  -> tap item catalogo -> MediaDetail
 
-MovieDetail
+MediaDetail
   -> back -> Home
 ```
 
@@ -820,11 +826,11 @@ Cada pantalla con carga de datos debe soportar:
 2. Crear `Result`, `ApiException`, `TokenStorage` y `ApiClient`.
 3. Implementar feature Auth completa con mocks.
 4. Implementar routing inicial y `SessionGate`.
-5. Implementar Home con Movies mock.
+5. Implementar Home con Catalog mock.
 6. Implementar busqueda local mock.
-7. Implementar detalle de pelicula con Movies mock.
+7. Implementar detalle de contenido con Catalog mock.
 8. Implementar Streaming mock dentro del detalle.
-9. Crear datasources remotos para Auth, Movies y Streaming segun contratos.
+9. Crear datasources remotos para Auth, Catalog y Streaming segun contratos.
 10. Ajustar UI para respetar mocks visuales.
 11. Ejecutar analisis, formato y pruebas basicas.
 
@@ -840,18 +846,19 @@ Cada pantalla con carga de datos debe soportar:
 - [ ] Register guarda token mock.
 - [ ] SessionGate restaura sesion mock.
 
-### Movies
+### Catalog
 
 - [ ] Home renderiza segun mock.
 - [ ] Home carga datos mock con query inicial fija.
+- [ ] Home muestra peliculas y series desde `MediaItem`.
 - [ ] Busqueda filtra datos mock.
 - [ ] Estado vacio aparece cuando no hay resultados.
-- [ ] Tap en pelicula navega a detalle.
+- [ ] Tap en item de catalogo navega a detalle.
 
 ### Detail
 
 - [ ] Detail renderiza segun mock.
-- [ ] Detail carga datos mock por `tmdbId`.
+- [ ] Detail carga datos mock por `id` y `type`.
 - [ ] Detail muestra sinopsis, generos, duracion y rating.
 - [ ] Detail muestra plataformas mock.
 - [ ] Back button vuelve a Home.
@@ -860,7 +867,7 @@ Cada pantalla con carga de datos debe soportar:
 
 - [ ] `ApiClient` soporta GET/POST/PATCH/DELETE.
 - [ ] `AuthRemoteDataSource` queda preparado.
-- [ ] `MoviesRemoteDataSource` queda preparado.
+- [ ] `MediaRemoteDataSource` queda preparado.
 - [ ] `StreamingRemoteDataSource` queda preparado.
 - [ ] Repositorios alternan mock/API con `useMockData`.
 - [ ] Errores se normalizan con `ApiException`.

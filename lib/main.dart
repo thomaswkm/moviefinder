@@ -14,13 +14,13 @@ import 'features/auth/presentation/controllers/login_controller.dart';
 import 'features/auth/presentation/controllers/register_controller.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
+import 'features/catalog/data/datasources/media_mock_data_source.dart';
+import 'features/catalog/data/repositories/media_repository_impl.dart';
+import 'features/catalog/domain/entities/media_item.dart';
+import 'features/catalog/domain/usecases/get_home_media_items.dart';
+import 'features/catalog/presentation/controllers/home_controller.dart';
+import 'features/catalog/presentation/pages/home_page.dart';
 import 'features/intro/presentation/pages/intro_page.dart';
-import 'features/movies/data/datasources/movie_mock_data_source.dart';
-import 'features/movies/data/repositories/movie_repository_impl.dart';
-import 'features/movies/domain/entities/movie.dart';
-import 'features/movies/domain/usecases/get_home_movies.dart';
-import 'features/movies/presentation/controllers/home_controller.dart';
-import 'features/movies/presentation/pages/home_page.dart';
 
 void main() {
   runApp(const MovieFinderApp());
@@ -43,7 +43,7 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
 
   AppScreen _screen = AppScreen.intro;
   AuthenticatedUser? _authenticatedUser;
-  Movie? _selectedMovie;
+  MediaItem? _selectedItem;
 
   @override
   void initState() {
@@ -57,8 +57,8 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     _getCurrentUser = GetCurrentUser(authRepository);
     _loginController = LoginController(LoginUser(authRepository));
     _registerController = RegisterController(RegisterUser(authRepository));
-    final movieRepository = MovieRepositoryImpl(const MovieMockDataSource());
-    _homeController = HomeController(GetHomeMovies(movieRepository));
+    final mediaRepository = MediaRepositoryImpl(const MediaMockDataSource());
+    _homeController = HomeController(GetHomeMediaItems(mediaRepository));
     _restoreSession();
   }
 
@@ -135,11 +135,11 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
       AppScreen.home => HomePage(
         key: const ValueKey(AppScreen.home),
         controller: _homeController,
-        onMovieSelected: _showMovieDetail,
+        onItemSelected: _showMediaDetail,
       ),
-      AppScreen.movieDetail => _MovieDetailPlaceholder(
-        key: const ValueKey(AppScreen.movieDetail),
-        movie: _selectedMovie,
+      AppScreen.mediaDetail => _MediaDetailPlaceholder(
+        key: const ValueKey(AppScreen.mediaDetail),
+        item: _selectedItem,
         onBack: () => _showScreen(AppScreen.home),
       ),
     };
@@ -171,29 +171,29 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     }
   }
 
-  void _showMovieDetail(Movie movie) {
+  void _showMediaDetail(MediaItem item) {
     setState(() {
-      _selectedMovie = movie;
-      _screen = AppScreen.movieDetail;
+      _selectedItem = item;
+      _screen = AppScreen.mediaDetail;
     });
   }
 }
 
-enum AppScreen { intro, login, register, home, movieDetail }
+enum AppScreen { intro, login, register, home, mediaDetail }
 
-class _MovieDetailPlaceholder extends StatelessWidget {
-  const _MovieDetailPlaceholder({
+class _MediaDetailPlaceholder extends StatelessWidget {
+  const _MediaDetailPlaceholder({
     super.key,
-    required this.movie,
+    required this.item,
     required this.onBack,
   });
 
-  final Movie? movie;
+  final MediaItem? item;
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    final selectedMovie = movie;
+    final selectedItem = item;
 
     return Scaffold(
       appBar: AppBar(leading: BackButton(onPressed: onBack)),
@@ -206,13 +206,13 @@ class _MovieDetailPlaceholder extends StatelessWidget {
               const Icon(Icons.movie_outlined, size: 64),
               const SizedBox(height: 16),
               Text(
-                selectedMovie?.title ?? 'Detalle',
+                selectedItem?.title ?? 'Detalle',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
               const Text(
-                'Detalle de pelicula se implementara en el siguiente CU.',
+                'Detalle de contenido se implementara en el siguiente CU.',
                 textAlign: TextAlign.center,
               ),
             ],

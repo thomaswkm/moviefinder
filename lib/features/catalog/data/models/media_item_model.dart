@@ -1,31 +1,39 @@
-import '../../domain/entities/movie.dart';
+import '../../domain/entities/media_item.dart';
 
-class MovieModel extends Movie {
-  const MovieModel({
+class MediaItemModel extends MediaItem {
+  const MediaItemModel({
     required super.id,
+    required super.type,
     required super.title,
     required super.originalTitle,
     required super.overview,
     required super.posterAssetPath,
     required super.releaseYear,
-    required super.durationMinutes,
     required super.rating,
     required super.genres,
-    required super.director,
+    super.durationMinutes,
+    super.seasonsCount,
+    super.episodesCount,
+    super.director,
+    super.creator,
   });
 
-  Movie toEntity() {
-    return Movie(
+  MediaItem toEntity() {
+    return MediaItem(
       id: id,
+      type: type,
       title: title,
       originalTitle: originalTitle,
       overview: overview,
       posterAssetPath: posterAssetPath,
       releaseYear: releaseYear,
-      durationMinutes: durationMinutes,
       rating: rating,
       genres: genres,
+      durationMinutes: durationMinutes,
+      seasonsCount: seasonsCount,
+      episodesCount: episodesCount,
       director: director,
+      creator: creator,
     );
   }
 }

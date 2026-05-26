@@ -51,7 +51,7 @@ void main() {
     expect(find.text('The Godfather'), findsOneWidget);
   });
 
-  testWidgets('opens movie detail placeholder from home card', (
+  testWidgets('opens media detail placeholder from home card', (
     WidgetTester tester,
   ) async {
     SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
@@ -59,15 +59,30 @@ void main() {
     await tester.pumpWidget(const MovieFinderApp());
     await tester.pumpAndSettle();
 
-    final movieCard = find.byKey(const ValueKey('movie_card_1'));
-    await tester.ensureVisible(movieCard);
+    final mediaCard = find.byKey(const ValueKey('media_card_1'));
+    await tester.ensureVisible(mediaCard);
     await tester.pumpAndSettle();
-    await tester.tap(movieCard);
+    await tester.tap(mediaCard);
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Detalle de pelicula se implementara en el siguiente CU.'),
+      find.text('Detalle de contenido se implementara en el siguiente CU.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('filters home content by series tab', (
+    WidgetTester tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
+
+    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('home_filter_series')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Breaking Bad'), findsOneWidget);
+    expect(find.text('5 seasons'), findsOneWidget);
   });
 }

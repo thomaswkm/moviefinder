@@ -1,18 +1,20 @@
-import '../models/movie_model.dart';
-import 'movie_data_source.dart';
+import '../../domain/entities/media_item.dart';
+import '../models/media_item_model.dart';
+import 'media_data_source.dart';
 
-class MovieMockDataSource implements MovieDataSource {
-  const MovieMockDataSource();
+class MediaMockDataSource implements MediaDataSource {
+  const MediaMockDataSource();
 
   static const _assetBasePath = 'assets/images/movies/mock';
 
   @override
-  Future<List<MovieModel>> getHomeMovies() async {
+  Future<List<MediaItemModel>> getHomeMediaItems() async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
     return const [
-      MovieModel(
+      MediaItemModel(
         id: 1,
+        type: MediaType.movie,
         title: 'The Godfather',
         originalTitle: 'The Godfather',
         overview:
@@ -24,8 +26,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Crimen', 'Drama'],
         director: 'Francis Ford Coppola',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 2,
+        type: MediaType.movie,
         title: 'Pulp Fiction',
         originalTitle: 'Pulp Fiction',
         overview:
@@ -37,8 +40,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Crimen', 'Drama'],
         director: 'Quentin Tarantino',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 3,
+        type: MediaType.movie,
         title: 'Perfect Days',
         originalTitle: 'Perfect Days',
         overview:
@@ -50,8 +54,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Drama'],
         director: 'Wim Wenders',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 4,
+        type: MediaType.movie,
         title: 'The Matrix',
         originalTitle: 'The Matrix',
         overview:
@@ -63,8 +68,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Accion', 'Ciencia ficcion'],
         director: 'Lana Wachowski, Lilly Wachowski',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 5,
+        type: MediaType.movie,
         title: 'Kill Bill: Vol. 1',
         originalTitle: 'Kill Bill: Vol. 1',
         overview:
@@ -76,8 +82,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Accion', 'Suspenso'],
         director: 'Quentin Tarantino',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 6,
+        type: MediaType.movie,
         title: 'Inglourious Basterds',
         originalTitle: 'Inglourious Basterds',
         overview:
@@ -89,8 +96,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Belico', 'Drama'],
         director: 'Quentin Tarantino',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 7,
+        type: MediaType.movie,
         title: 'Goodfellas',
         originalTitle: 'Goodfellas',
         overview:
@@ -102,8 +110,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Crimen', 'Biografia'],
         director: 'Martin Scorsese',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 8,
+        type: MediaType.movie,
         title: 'Fight Club',
         originalTitle: 'Fight Club',
         overview:
@@ -115,8 +124,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Drama', 'Suspenso'],
         director: 'David Fincher',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 9,
+        type: MediaType.movie,
         title: 'Drive',
         originalTitle: 'Drive',
         overview:
@@ -128,8 +138,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Crimen', 'Drama'],
         director: 'Nicolas Winding Refn',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 10,
+        type: MediaType.movie,
         title: 'Drive My Car',
         originalTitle: 'Doraibu mai ka',
         overview:
@@ -141,8 +152,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Drama'],
         director: 'Ryusuke Hamaguchi',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 11,
+        type: MediaType.movie,
         title: 'Chungking Express',
         originalTitle: 'Chung Hing sam lam',
         overview:
@@ -154,8 +166,9 @@ class MovieMockDataSource implements MovieDataSource {
         genres: ['Drama', 'Romance'],
         director: 'Wong Kar-wai',
       ),
-      MovieModel(
+      MediaItemModel(
         id: 12,
+        type: MediaType.movie,
         title: 'Blade Runner 2049',
         originalTitle: 'Blade Runner 2049',
         overview:
@@ -166,6 +179,36 @@ class MovieMockDataSource implements MovieDataSource {
         rating: 8.0,
         genres: ['Ciencia ficcion', 'Drama'],
         director: 'Denis Villeneuve',
+      ),
+      MediaItemModel(
+        id: 13,
+        type: MediaType.series,
+        title: 'Breaking Bad',
+        originalTitle: 'Breaking Bad',
+        overview:
+            'Un profesor de quimica con cancer terminal empieza a fabricar metanfetamina para asegurar el futuro de su familia.',
+        posterAssetPath: '$_assetBasePath/breaking-bad.jpg',
+        releaseYear: 2008,
+        seasonsCount: 5,
+        episodesCount: 62,
+        rating: 9.5,
+        genres: ['Crimen', 'Drama'],
+        creator: 'Vince Gilligan',
+      ),
+      MediaItemModel(
+        id: 14,
+        type: MediaType.series,
+        title: 'The Walking Dead',
+        originalTitle: 'The Walking Dead',
+        overview:
+            'Un grupo de sobrevivientes intenta mantenerse con vida en un mundo devastado por caminantes.',
+        posterAssetPath: '$_assetBasePath/the-walking-dead.jpg',
+        releaseYear: 2010,
+        seasonsCount: 11,
+        episodesCount: 177,
+        rating: 8.1,
+        genres: ['Drama', 'Terror'],
+        creator: 'Frank Darabont',
       ),
     ];
   }
