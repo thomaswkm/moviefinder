@@ -51,7 +51,7 @@ void main() {
     expect(find.text('The Godfather'), findsOneWidget);
   });
 
-  testWidgets('opens media detail placeholder from home card', (
+  testWidgets('opens media detail from home card and goes back', (
     WidgetTester tester,
   ) async {
     SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
@@ -65,10 +65,29 @@ void main() {
     await tester.tap(mediaCard);
     await tester.pumpAndSettle();
 
+    expect(find.text('Pelicula'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Francis Ford Coppola'),
+      300,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sinopsis'), findsOneWidget);
+    expect(find.text('9.2'), findsOneWidget);
+    expect(find.text('Francis Ford Coppola'), findsOneWidget);
     expect(
-      find.text('Detalle de contenido se implementara en el siguiente CU.'),
+      find.text(
+        'El patriarca de una familia criminal transfiere el control de su imperio a su hijo menor.',
+      ),
       findsOneWidget,
     );
+
+    await tester.tap(find.byKey(const Key('media_detail_back_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('For you'), findsOneWidget);
   });
 
   testWidgets('filters home content by series tab', (

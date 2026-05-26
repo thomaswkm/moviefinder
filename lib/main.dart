@@ -20,6 +20,7 @@ import 'features/catalog/domain/entities/media_item.dart';
 import 'features/catalog/domain/usecases/get_home_media_items.dart';
 import 'features/catalog/presentation/controllers/home_controller.dart';
 import 'features/catalog/presentation/pages/home_page.dart';
+import 'features/catalog/presentation/pages/media_detail_page.dart';
 import 'features/intro/presentation/pages/intro_page.dart';
 
 void main() {
@@ -137,9 +138,9 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
         controller: _homeController,
         onItemSelected: _showMediaDetail,
       ),
-      AppScreen.mediaDetail => _MediaDetailPlaceholder(
+      AppScreen.mediaDetail => MediaDetailPage(
         key: const ValueKey(AppScreen.mediaDetail),
-        item: _selectedItem,
+        item: _selectedItem!,
         onBack: () => _showScreen(AppScreen.home),
       ),
     };
@@ -180,45 +181,3 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
 }
 
 enum AppScreen { intro, login, register, home, mediaDetail }
-
-class _MediaDetailPlaceholder extends StatelessWidget {
-  const _MediaDetailPlaceholder({
-    super.key,
-    required this.item,
-    required this.onBack,
-  });
-
-  final MediaItem? item;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final selectedItem = item;
-
-    return Scaffold(
-      appBar: AppBar(leading: BackButton(onPressed: onBack)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.movie_outlined, size: 64),
-              const SizedBox(height: 16),
-              Text(
-                selectedItem?.title ?? 'Detalle',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Detalle de contenido se implementara en el siguiente CU.',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
