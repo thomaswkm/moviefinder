@@ -22,6 +22,9 @@ import 'features/catalog/presentation/controllers/home_controller.dart';
 import 'features/catalog/presentation/pages/home_page.dart';
 import 'features/catalog/presentation/pages/media_detail_page.dart';
 import 'features/intro/presentation/pages/intro_page.dart';
+import 'features/streaming/data/datasources/streaming_mock_data_source.dart';
+import 'features/streaming/data/repositories/streaming_repository_impl.dart';
+import 'features/streaming/domain/usecases/get_streaming_sources.dart';
 
 void main() {
   runApp(const MovieFinderApp());
@@ -41,6 +44,7 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
   late final LoginController _loginController;
   late final RegisterController _registerController;
   late final HomeController _homeController;
+  late final GetStreamingSources _getStreamingSources;
 
   AppScreen _screen = AppScreen.intro;
   AuthenticatedUser? _authenticatedUser;
@@ -60,6 +64,10 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     _registerController = RegisterController(RegisterUser(authRepository));
     final mediaRepository = MediaRepositoryImpl(const MediaMockDataSource());
     _homeController = HomeController(GetHomeMediaItems(mediaRepository));
+    final streamingRepository = StreamingRepositoryImpl(
+      const StreamingMockDataSource(),
+    );
+    _getStreamingSources = GetStreamingSources(streamingRepository);
     _restoreSession();
   }
 
@@ -141,6 +149,7 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
       AppScreen.mediaDetail => MediaDetailPage(
         key: const ValueKey(AppScreen.mediaDetail),
         item: _selectedItem!,
+        getStreamingSources: _getStreamingSources,
         onBack: () => _showScreen(AppScreen.home),
       ),
     };

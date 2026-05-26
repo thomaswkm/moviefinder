@@ -1,17 +1,40 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../streaming/domain/entities/streaming_source.dart';
+import '../../../streaming/domain/usecases/get_streaming_sources.dart';
+import '../../../streaming/presentation/widgets/streaming_platform_list.dart';
 import '../../domain/entities/media_item.dart';
 
-class MediaDetailPage extends StatelessWidget {
-  const MediaDetailPage({super.key, required this.item, required this.onBack});
+class MediaDetailPage extends StatefulWidget {
+  const MediaDetailPage({
+    super.key,
+    required this.item,
+    required this.getStreamingSources,
+    required this.onBack,
+  });
 
   final MediaItem item;
+  final GetStreamingSources getStreamingSources;
   final VoidCallback onBack;
+
+  @override
+  State<MediaDetailPage> createState() => _MediaDetailPageState();
+}
+
+class _MediaDetailPageState extends State<MediaDetailPage> {
+  late final Future<List<StreamingSource>> _streamingSources;
+
+  @override
+  void initState() {
+    super.initState();
+    _streamingSources = widget.getStreamingSources(widget.item.id);
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final item = widget.item;
 
     return Scaffold(
       body: SafeArea(
@@ -21,6 +44,7 @@ class MediaDetailPage extends StatelessWidget {
             child: Stack(
               children: [
                 CustomScrollView(
+                  key: const Key('media_detail_scroll_view'),
                   slivers: [
                     SliverToBoxAdapter(child: _PosterHeader(item: item)),
                     SliverPadding(
@@ -61,6 +85,8 @@ class MediaDetailPage extends StatelessWidget {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 24),
+                          _StreamingSection(sources: _streamingSources),
                           const SizedBox(height: 24),
                           Text(
                             'Sinopsis',
@@ -107,7 +133,7 @@ class MediaDetailPage extends StatelessWidget {
                   child: _CircleButton(
                     key: const Key('media_detail_back_button'),
                     icon: Icons.arrow_back,
-                    onPressed: onBack,
+                    onPressed: widget.onBack,
                   ),
                 ),
               ],
@@ -143,6 +169,60 @@ class MediaDetailPage extends StatelessWidget {
       MediaType.movie => item.director ?? 'No disponible',
       MediaType.series => item.creator ?? 'No disponible',
     };
+  }
+}
+
+class _StreamingSection extends StatelessWidget {
+  const _StreamingSection({required this.sources});
+
+  final Future<List<StreamingSource>> sources;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<StreamingSource>>(
+      future: sources,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _StreamingLoadingState();
+        }
+
+        if (snapshot.hasError) {
+          return const _StreamingErrorState();
+        }
+
+        return StreamingPlatformList(sources: snapshot.data ?? const []);
+      },
+    );
+  }
+}
+
+class _StreamingLoadingState extends StatelessWidget {
+  const _StreamingLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 148,
+      child: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
+class _StreamingErrorState extends StatelessWidget {
+  const _StreamingErrorState();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.all(18),
+        child: Text('No se pudieron cargar las plataformas.'),
+      ),
+    );
   }
 }
 

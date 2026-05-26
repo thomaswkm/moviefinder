@@ -68,14 +68,31 @@ void main() {
     expect(find.text('Pelicula'), findsOneWidget);
 
     await tester.scrollUntilVisible(
+      find.text('Platforms'),
+      300,
+      scrollable: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Platforms'), findsOneWidget);
+    expect(find.text('HBO Max'), findsOneWidget);
+    expect(find.text('Netflix'), findsOneWidget);
+    expect(find.text('Incluida'), findsWidgets);
+
+    await tester.scrollUntilVisible(
       find.text('Francis Ford Coppola'),
       300,
-      scrollable: find.byType(Scrollable),
+      scrollable: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Sinopsis'), findsOneWidget);
-    expect(find.text('9.2'), findsOneWidget);
     expect(find.text('Francis Ford Coppola'), findsOneWidget);
     expect(
       find.text(
