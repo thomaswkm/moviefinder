@@ -95,6 +95,28 @@ void main() {
 
     expect(find.text('Pelicula'), findsOneWidget);
 
+    final likeButton = find.byKey(
+      const Key('media_detail_like_button'),
+      skipOffstage: false,
+    );
+
+    await tester.scrollUntilVisible(
+      likeButton,
+      300,
+      scrollable: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Agregar a watchlist'), findsOneWidget);
+
+    await tester.tap(likeButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Agregada a tu watchlist'), findsOneWidget);
+
     await tester.scrollUntilVisible(
       find.text('Platforms'),
       300,

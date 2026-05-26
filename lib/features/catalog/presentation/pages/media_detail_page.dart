@@ -24,6 +24,7 @@ class MediaDetailPage extends StatefulWidget {
 
 class _MediaDetailPageState extends State<MediaDetailPage> {
   late final Future<List<StreamingSource>> _streamingSources;
+  bool _isLiked = false;
 
   @override
   void initState() {
@@ -51,10 +52,42 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
                       padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
                       sliver: SliverList.list(
                         children: [
-                          Text(
-                            item.title,
-                            style: textTheme.headlineLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.title,
+                                  style: textTheme.headlineLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              _LikeButton(
+                                isLiked: _isLiked,
+                                onPressed: () {
+                                  setState(() {
+                                    _isLiked = !_isLiked;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 180),
+                            child: Text(
+                              _isLiked
+                                  ? 'Agregada a tu watchlist'
+                                  : 'Agregar a watchlist',
+                              key: ValueKey(_isLiked),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: _isLiked
+                                    ? AppColors.primary
+                                    : AppColors.secondaryText,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           if (item.originalTitle != item.title) ...[
@@ -169,6 +202,47 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
       MediaType.movie => item.director ?? 'No disponible',
       MediaType.series => item.creator ?? 'No disponible',
     };
+  }
+}
+
+class _LikeButton extends StatelessWidget {
+  const _LikeButton({required this.isLiked, required this.onPressed});
+
+  final bool isLiked;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Semantics(
+      key: const Key('media_detail_like_button'),
+      button: true,
+      selected: isLiked,
+      label: isLiked ? 'Quitar de watchlist' : 'Agregar a watchlist',
+      child: IconButton.filled(
+        style: IconButton.styleFrom(
+          backgroundColor: isLiked
+              ? AppColors.primary
+              : isDark
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.black.withValues(alpha: 0.06),
+          foregroundColor: isLiked ? Colors.black : AppColors.secondaryText,
+          fixedSize: const Size.square(48),
+        ),
+        onPressed: onPressed,
+        icon: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 160),
+          transitionBuilder: (child, animation) {
+            return ScaleTransition(scale: animation, child: child);
+          },
+          child: Icon(
+            isLiked ? Icons.favorite : Icons.favorite_border,
+            key: ValueKey(isLiked),
+          ),
+        ),
+      ),
+    );
   }
 }
 
