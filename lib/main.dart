@@ -1,27 +1,39 @@
 import 'package:flutter/material.dart';
 
+import 'core/network/api_client.dart';
+import 'core/network/api_config.dart';
 import 'core/result/result.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/storage/token_storage.dart';
 import 'features/auth/data/datasources/auth_mock_data_source.dart';
+import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/entities/authenticated_user.dart';
 import 'features/auth/domain/usecases/get_current_user.dart';
 import 'features/auth/domain/usecases/login_user.dart';
+import 'features/auth/domain/usecases/logout_user.dart';
 import 'features/auth/domain/usecases/register_user.dart';
 import 'features/auth/presentation/controllers/login_controller.dart';
 import 'features/auth/presentation/controllers/register_controller.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
+import 'features/catalog/data/datasources/media_remote_data_source.dart';
 import 'features/catalog/data/datasources/media_mock_data_source.dart';
+import 'features/catalog/data/datasources/wishlist_mock_data_source.dart';
+import 'features/catalog/data/datasources/wishlist_remote_data_source.dart';
 import 'features/catalog/data/repositories/media_repository_impl.dart';
 import 'features/catalog/domain/entities/media_item.dart';
 import 'features/catalog/domain/usecases/get_home_media_items.dart';
 import 'features/catalog/presentation/controllers/home_controller.dart';
+import 'features/catalog/presentation/controllers/search_controller.dart' as catalog;
+import 'features/catalog/presentation/controllers/wishlist_controller.dart';
 import 'features/catalog/presentation/pages/home_page.dart';
 import 'features/catalog/presentation/pages/media_detail_page.dart';
+import 'features/catalog/presentation/pages/search_page.dart';
+import 'features/catalog/presentation/pages/wishlist_page.dart';
 import 'features/intro/presentation/pages/intro_page.dart';
+import 'features/streaming/data/datasources/streaming_remote_data_source.dart';
 import 'features/streaming/data/datasources/streaming_mock_data_source.dart';
 import 'features/streaming/data/repositories/streaming_repository_impl.dart';
 import 'features/streaming/domain/usecases/get_streaming_sources.dart';
@@ -32,7 +44,9 @@ void main() {
 }
 
 class MovieFinderApp extends StatefulWidget {
-  const MovieFinderApp({super.key});
+  const MovieFinderApp({super.key, this.useMockData = false});
+
+  final bool useMockData;
 
   @override
   State<MovieFinderApp> createState() => _MovieFinderAppState();
@@ -40,14 +54,19 @@ class MovieFinderApp extends StatefulWidget {
 
 class _MovieFinderAppState extends State<MovieFinderApp> {
   late final TokenStorage _tokenStorage;
+  late final ApiClient _apiClient;
   late final ThemeController _themeController;
   late final GetCurrentUser _getCurrentUser;
+  late final LogoutUser _logoutUser;
   late final LoginController _loginController;
   late final RegisterController _registerController;
   late final HomeController _homeController;
+  late final catalog.MediaSearchController _searchController;
+  late final WishlistController _wishlistController;
   late final GetStreamingSources _getStreamingSources;
 
   AppScreen _screen = AppScreen.intro;
+  AppScreen _detailReturnScreen = AppScreen.home;
   AuthenticatedUser? _authenticatedUser;
   MediaItem? _selectedItem;
 
@@ -55,18 +74,36 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
   void initState() {
     super.initState();
     _tokenStorage = TokenStorage();
+    _apiClient = ApiClient(
+      config: ApiConfig.development,
+      tokenStorage: _tokenStorage,
+    );
     _themeController = ThemeController();
     final authRepository = AuthRepositoryImpl(
-      const AuthMockDataSource(),
+      widget.useMockData
+          ? const AuthMockDataSource()
+          : AuthRemoteDataSource(_apiClient),
       _tokenStorage,
     );
     _getCurrentUser = GetCurrentUser(authRepository);
+    _logoutUser = LogoutUser(authRepository);
     _loginController = LoginController(LoginUser(authRepository));
     _registerController = RegisterController(RegisterUser(authRepository));
-    final mediaRepository = MediaRepositoryImpl(const MediaMockDataSource());
+    final mediaDataSource = MediaRemoteDataSource(_apiClient);
+    final mediaRepository = MediaRepositoryImpl(
+      widget.useMockData ? const MediaMockDataSource() : mediaDataSource,
+    );
     _homeController = HomeController(GetHomeMediaItems(mediaRepository));
+    _searchController = catalog.MediaSearchController(mediaDataSource);
+    _wishlistController = WishlistController(
+      widget.useMockData
+          ? WishlistMockDataSource()
+          : WishlistRemoteDataSource(_apiClient),
+    );
     final streamingRepository = StreamingRepositoryImpl(
-      const StreamingMockDataSource(),
+      widget.useMockData
+          ? const StreamingMockDataSource()
+          : StreamingRemoteDataSource(_apiClient),
     );
     _getStreamingSources = GetStreamingSources(streamingRepository);
     _restoreSession();
@@ -78,6 +115,8 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     _loginController.dispose();
     _registerController.dispose();
     _homeController.dispose();
+    _searchController.dispose();
+    _wishlistController.dispose();
     super.dispose();
   }
 
@@ -163,13 +202,29 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
       AppScreen.home => HomePage(
         key: const ValueKey(AppScreen.home),
         controller: _homeController,
-        onItemSelected: _showMediaDetail,
+        onItemSelected: (item) => _showMediaDetail(item, AppScreen.home),
+        onSearchPressed: () => _showScreen(AppScreen.search),
+        onWishlistPressed: () => _showScreen(AppScreen.wishlist),
+        onProfilePressed: _logout,
+      ),
+      AppScreen.search => SearchPage(
+        key: const ValueKey(AppScreen.search),
+        controller: _searchController,
+        onItemSelected: (item) => _showMediaDetail(item, AppScreen.search),
+        onBack: () => _showScreen(AppScreen.home),
+      ),
+      AppScreen.wishlist => WishlistPage(
+        key: const ValueKey(AppScreen.wishlist),
+        controller: _wishlistController,
+        onItemSelected: (item) => _showMediaDetail(item, AppScreen.wishlist),
+        onBack: () => _showScreen(AppScreen.home),
       ),
       AppScreen.mediaDetail => MediaDetailPage(
         key: const ValueKey(AppScreen.mediaDetail),
         item: _selectedItem!,
         getStreamingSources: _getStreamingSources,
-        onBack: () => _showScreen(AppScreen.home),
+        wishlistController: _wishlistController,
+        onBack: () => _showScreen(_detailReturnScreen),
       ),
     };
   }
@@ -200,12 +255,27 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     }
   }
 
-  void _showMediaDetail(MediaItem item) {
+  void _showMediaDetail(MediaItem item, AppScreen returnScreen) {
     setState(() {
+      _detailReturnScreen = returnScreen;
       _selectedItem = item;
       _screen = AppScreen.mediaDetail;
     });
   }
+
+  Future<void> _logout() async {
+    await _logoutUser();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _authenticatedUser = null;
+      _selectedItem = null;
+      _detailReturnScreen = AppScreen.home;
+      _screen = AppScreen.login;
+    });
+  }
 }
 
-enum AppScreen { intro, login, register, home, mediaDetail }
+enum AppScreen { intro, login, register, home, search, wishlist, mediaDetail }

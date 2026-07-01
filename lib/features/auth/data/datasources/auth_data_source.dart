@@ -6,4 +6,6 @@ abstract interface class AuthDataSource {
   Future<AuthResponseModel> login(LoginRequestModel request);
 
   Future<AuthResponseModel> register(RegisterRequestModel request);
+
+  Future<AuthResponseModel> getCurrentUser(String token);
 }

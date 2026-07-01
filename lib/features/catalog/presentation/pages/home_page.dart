@@ -13,10 +13,16 @@ class HomePage extends StatefulWidget {
     super.key,
     required this.controller,
     required this.onItemSelected,
+    required this.onSearchPressed,
+    required this.onWishlistPressed,
+    required this.onProfilePressed,
   });
 
   final HomeController controller;
   final ValueChanged<MediaItem> onItemSelected;
+  final VoidCallback onSearchPressed;
+  final VoidCallback onWishlistPressed;
+  final VoidCallback onProfilePressed;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -60,9 +66,14 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      bottomNavigationBar: const SafeArea(
+      bottomNavigationBar: SafeArea(
         minimum: EdgeInsets.fromLTRB(20, 0, 20, 18),
-        child: MainBottomNavigation(),
+        child: MainBottomNavigation(
+          onHomePressed: widget.controller.loadItems,
+          onSearchPressed: widget.onSearchPressed,
+          onWishlistPressed: widget.onWishlistPressed,
+          onProfilePressed: widget.onProfilePressed,
+        ),
       ),
     );
   }
@@ -71,7 +82,7 @@ class _HomePageState extends State<HomePage> {
     final controller = widget.controller;
 
     if (controller.isLoading && controller.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const _HomeLoadingState();
     }
 
     if (controller.message != null) {
@@ -383,7 +394,7 @@ class _MediaChips extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _InfoChip(label: item.genres.first),
+        _InfoChip(label: item.genres.isEmpty ? 'Sin genero' : item.genres.first),
         const SizedBox(width: 18),
         _InfoChip(label: _secondaryLabel(item)),
         const SizedBox(width: 18),
@@ -494,6 +505,53 @@ class _HomeMessage extends StatelessWidget {
               const SizedBox(height: 16),
               TextButton(onPressed: onActionPressed, child: Text(actionLabel!)),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeLoadingState extends StatefulWidget {
+  const _HomeLoadingState();
+
+  @override
+  State<_HomeLoadingState> createState() => _HomeLoadingStateState();
+}
+
+class _HomeLoadingStateState extends State<_HomeLoadingState>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: FadeTransition(
+        opacity: Tween<double>(begin: 0.42, end: 1).animate(_controller),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.local_movies_outlined, size: 58),
+            const SizedBox(height: 18),
+            Text(
+              'Cargando peliculas...',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ],
         ),
       ),

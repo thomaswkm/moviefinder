@@ -3,7 +3,18 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class MainBottomNavigation extends StatelessWidget {
-  const MainBottomNavigation({super.key});
+  const MainBottomNavigation({
+    super.key,
+    required this.onHomePressed,
+    required this.onSearchPressed,
+    required this.onWishlistPressed,
+    required this.onProfilePressed,
+  });
+
+  final VoidCallback onHomePressed;
+  final VoidCallback onSearchPressed;
+  final VoidCallback onWishlistPressed;
+  final VoidCallback onProfilePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -34,25 +45,25 @@ class MainBottomNavigation extends StatelessWidget {
           children: [
             IconButton(
               key: const Key('home_nav_button'),
-              onPressed: () {},
+              onPressed: onHomePressed,
               icon: const Icon(Icons.home_outlined),
               color: AppColors.primary,
               iconSize: 34,
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: onSearchPressed,
               icon: const Icon(Icons.search),
               color: inactiveColor,
               iconSize: 32,
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: onWishlistPressed,
               icon: const Icon(Icons.favorite_border),
               color: inactiveColor,
               iconSize: 32,
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: onProfilePressed,
               icon: const Icon(Icons.person_outline),
               color: inactiveColor,
               iconSize: 32,

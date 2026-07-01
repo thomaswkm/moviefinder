@@ -9,8 +9,6 @@ import '../models/register_request_model.dart';
 class AuthRepositoryImpl implements AuthRepository {
   const AuthRepositoryImpl(this._dataSource, this._tokenStorage);
 
-  static const _mockToken = 'mock-jwt-token';
-
   final AuthDataSource _dataSource;
   final TokenStorage _tokenStorage;
 
@@ -22,19 +20,13 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Success(null);
     }
 
-    if (token != _mockToken) {
+    try {
+      final response = await _dataSource.getCurrentUser(token);
+      return Success(response.toEntity());
+    } on Exception {
       await _tokenStorage.clearToken();
       return const Failure('La sesion expiro. Inicia sesion nuevamente.');
     }
-
-    return const Success(
-      AuthenticatedUser(
-        id: 1,
-        email: 'mock.user@moviefinder.local',
-        username: 'mock.user',
-        token: _mockToken,
-      ),
-    );
   }
 
   @override

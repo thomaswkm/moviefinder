@@ -19,7 +19,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'The Godfather',
         overview:
             'El patriarca de una familia criminal transfiere el control de su imperio a su hijo menor.',
-        posterAssetPath: '$_assetBasePath/the-godfather.jpg',
+        posterUrl: '$_assetBasePath/the-godfather.jpg',
         releaseYear: 1972,
         durationMinutes: 175,
         rating: 9.2,
@@ -33,7 +33,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Pulp Fiction',
         overview:
             'Historias cruzadas de crimen, azar y violencia en Los Angeles.',
-        posterAssetPath: '$_assetBasePath/pulp-fiction.jpg',
+        posterUrl: '$_assetBasePath/pulp-fiction.jpg',
         releaseYear: 1994,
         durationMinutes: 154,
         rating: 8.9,
@@ -47,7 +47,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Perfect Days',
         overview:
             'Un limpiador de banos publicos en Tokio encuentra belleza en su rutina diaria.',
-        posterAssetPath: '$_assetBasePath/perfect-days.jpg',
+        posterUrl: '$_assetBasePath/perfect-days.jpg',
         releaseYear: 2023,
         durationMinutes: 124,
         rating: 7.9,
@@ -61,7 +61,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'The Matrix',
         overview:
             'Un hacker descubre que la realidad que conoce es una simulacion creada por maquinas.',
-        posterAssetPath: '$_assetBasePath/matrix.jpg',
+        posterUrl: '$_assetBasePath/matrix.jpg',
         releaseYear: 1999,
         durationMinutes: 136,
         rating: 8.7,
@@ -75,7 +75,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Kill Bill: Vol. 1',
         overview:
             'Una exasesina despierta de un coma y busca venganza contra su antiguo escuadron.',
-        posterAssetPath: '$_assetBasePath/kill-bill-vol-1.jpg',
+        posterUrl: '$_assetBasePath/kill-bill-vol-1.jpg',
         releaseYear: 2003,
         durationMinutes: 111,
         rating: 8.2,
@@ -89,7 +89,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Inglourious Basterds',
         overview:
             'Un grupo de soldados aliados planea atacar a lideres nazis durante la Segunda Guerra Mundial.',
-        posterAssetPath: '$_assetBasePath/inglorious-basterds.jpg',
+        posterUrl: '$_assetBasePath/inglorious-basterds.jpg',
         releaseYear: 2009,
         durationMinutes: 153,
         rating: 8.4,
@@ -103,7 +103,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Goodfellas',
         overview:
             'El ascenso y caida de Henry Hill dentro de la mafia neoyorquina.',
-        posterAssetPath: '$_assetBasePath/goodfellas.jpg',
+        posterUrl: '$_assetBasePath/goodfellas.jpg',
         releaseYear: 1990,
         durationMinutes: 145,
         rating: 8.7,
@@ -117,7 +117,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Fight Club',
         overview:
             'Un oficinista insomne y un vendedor de jabon fundan un club clandestino de pelea.',
-        posterAssetPath: '$_assetBasePath/fight-club.jpg',
+        posterUrl: '$_assetBasePath/fight-club.jpg',
         releaseYear: 1999,
         durationMinutes: 139,
         rating: 8.8,
@@ -131,7 +131,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Drive',
         overview:
             'Un conductor especialista se involucra en un atraco que amenaza a sus vecinos.',
-        posterAssetPath: '$_assetBasePath/drive.jpg',
+        posterUrl: '$_assetBasePath/drive.jpg',
         releaseYear: 2011,
         durationMinutes: 100,
         rating: 7.8,
@@ -145,7 +145,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Doraibu mai ka',
         overview:
             'Un actor y director de teatro procesa una perdida mientras prepara una obra en Hiroshima.',
-        posterAssetPath: '$_assetBasePath/drive-my-car.jpg',
+        posterUrl: '$_assetBasePath/drive-my-car.jpg',
         releaseYear: 2021,
         durationMinutes: 179,
         rating: 7.6,
@@ -159,7 +159,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Chung Hing sam lam',
         overview:
             'Dos policias de Hong Kong atraviesan encuentros romanticos marcados por el azar.',
-        posterAssetPath: '$_assetBasePath/chungking-express.jpg',
+        posterUrl: '$_assetBasePath/chungking-express.jpg',
         releaseYear: 1994,
         durationMinutes: 102,
         rating: 8.0,
@@ -173,7 +173,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Blade Runner 2049',
         overview:
             'Un blade runner descubre un secreto capaz de desestabilizar lo que queda de la sociedad.',
-        posterAssetPath: '$_assetBasePath/blade-runner-2049.jpg',
+        posterUrl: '$_assetBasePath/blade-runner-2049.jpg',
         releaseYear: 2017,
         durationMinutes: 164,
         rating: 8.0,
@@ -187,7 +187,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'Breaking Bad',
         overview:
             'Un profesor de quimica con cancer terminal empieza a fabricar metanfetamina para asegurar el futuro de su familia.',
-        posterAssetPath: '$_assetBasePath/breaking-bad.jpg',
+        posterUrl: '$_assetBasePath/breaking-bad.jpg',
         releaseYear: 2008,
         seasonsCount: 5,
         episodesCount: 62,
@@ -202,7 +202,7 @@ class MediaMockDataSource implements MediaDataSource {
         originalTitle: 'The Walking Dead',
         overview:
             'Un grupo de sobrevivientes intenta mantenerse con vida en un mundo devastado por caminantes.',
-        posterAssetPath: '$_assetBasePath/the-walking-dead.jpg',
+        posterUrl: '$_assetBasePath/the-walking-dead.jpg',
         releaseYear: 2010,
         seasonsCount: 11,
         episodesCount: 177,

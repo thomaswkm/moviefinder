@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../streaming/domain/entities/streaming_source.dart';
 import '../../../streaming/domain/usecases/get_streaming_sources.dart';
 import '../../../streaming/presentation/widgets/streaming_platform_list.dart';
 import '../../domain/entities/media_item.dart';
+import '../controllers/wishlist_controller.dart';
 
 class MediaDetailPage extends StatefulWidget {
   const MediaDetailPage({
     super.key,
     required this.item,
     required this.getStreamingSources,
+    required this.wishlistController,
     required this.onBack,
   });
 
   final MediaItem item;
   final GetStreamingSources getStreamingSources;
+  final WishlistController wishlistController;
   final VoidCallback onBack;
 
   @override
@@ -24,18 +28,45 @@ class MediaDetailPage extends StatefulWidget {
 
 class _MediaDetailPageState extends State<MediaDetailPage> {
   late final Future<List<StreamingSource>> _streamingSources;
-  bool _isLiked = false;
 
   @override
   void initState() {
     super.initState();
+    widget.wishlistController.addListener(_onWishlistChanged);
+    widget.wishlistController.loadIds();
     _streamingSources = widget.getStreamingSources(widget.item.id);
+  }
+
+  @override
+  void dispose() {
+    widget.wishlistController.removeListener(_onWishlistChanged);
+    super.dispose();
+  }
+
+  void _onWishlistChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    final schedulerPhase = WidgetsBinding.instance.schedulerPhase;
+    if (schedulerPhase == SchedulerPhase.persistentCallbacks ||
+        schedulerPhase == SchedulerPhase.transientCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    } else {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final item = widget.item;
+    final isLiked = widget.wishlistController.contains(item.id);
+    final isWishlistPending = widget.wishlistController.isPending(item.id);
 
     return Scaffold(
       body: SafeArea(
@@ -65,12 +96,9 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
                               ),
                               const SizedBox(width: 14),
                               _LikeButton(
-                                isLiked: _isLiked,
-                                onPressed: () {
-                                  setState(() {
-                                    _isLiked = !_isLiked;
-                                  });
-                                },
+                                isLiked: isLiked,
+                                isPending: isWishlistPending,
+                                onPressed: () => widget.wishlistController.toggle(item),
                               ),
                             ],
                           ),
@@ -78,12 +106,12 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 180),
                             child: Text(
-                              _isLiked
+                              isLiked
                                   ? 'Agregada a tu watchlist'
                                   : 'Agregar a watchlist',
-                              key: ValueKey(_isLiked),
+                              key: ValueKey(isLiked),
                               style: textTheme.bodySmall?.copyWith(
-                                color: _isLiked
+                                color: isLiked
                                     ? AppColors.primary
                                     : AppColors.secondaryText,
                                 fontWeight: FontWeight.w600,
@@ -206,9 +234,14 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
 }
 
 class _LikeButton extends StatelessWidget {
-  const _LikeButton({required this.isLiked, required this.onPressed});
+  const _LikeButton({
+    required this.isLiked,
+    required this.isPending,
+    required this.onPressed,
+  });
 
   final bool isLiked;
+  final bool isPending;
   final VoidCallback onPressed;
 
   @override
@@ -230,16 +263,22 @@ class _LikeButton extends StatelessWidget {
           foregroundColor: isLiked ? Colors.black : AppColors.secondaryText,
           fixedSize: const Size.square(48),
         ),
-        onPressed: onPressed,
+        onPressed: isPending ? null : onPressed,
         icon: AnimatedSwitcher(
           duration: const Duration(milliseconds: 160),
           transitionBuilder: (child, animation) {
             return ScaleTransition(scale: animation, child: child);
           },
-          child: Icon(
-            isLiked ? Icons.favorite : Icons.favorite_border,
-            key: ValueKey(isLiked),
-          ),
+          child: isPending
+              ? const SizedBox.square(
+                  key: ValueKey('wishlist_pending'),
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(
+                  isLiked ? Icons.favorite : Icons.favorite_border,
+                  key: ValueKey(isLiked),
+                ),
         ),
       ),
     );
@@ -312,20 +351,7 @@ class _PosterHeader extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            item.posterAssetPath,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColors.secondaryText.withValues(alpha: 0.16),
-                ),
-                child: const Center(
-                  child: Icon(Icons.movie_outlined, size: 72),
-                ),
-              );
-            },
-          ),
+          _DetailPosterImage(path: item.posterUrl),
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -356,6 +382,29 @@ class _PosterHeader extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DetailPosterImage extends StatelessWidget {
+  const _DetailPosterImage({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    if (path.startsWith('http')) {
+      return Image.network(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
+    }
+    return Image.asset(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
+  }
+
+  Widget _errorBuilder(BuildContext context, Object error, StackTrace? stackTrace) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.secondaryText.withValues(alpha: 0.16),
+      ),
+      child: const Center(child: Icon(Icons.movie_outlined, size: 72)),
     );
   }
 }

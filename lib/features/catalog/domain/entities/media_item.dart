@@ -7,7 +7,7 @@ class MediaItem {
     required this.title,
     required this.originalTitle,
     required this.overview,
-    required this.posterAssetPath,
+    required this.posterUrl,
     required this.releaseYear,
     required this.rating,
     required this.genres,
@@ -23,7 +23,7 @@ class MediaItem {
   final String title;
   final String originalTitle;
   final String overview;
-  final String posterAssetPath;
+  final String posterUrl;
   final int releaseYear;
   final double rating;
   final List<String> genres;

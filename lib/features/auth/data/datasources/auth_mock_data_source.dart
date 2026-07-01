@@ -30,6 +30,18 @@ class AuthMockDataSource implements AuthDataSource {
     );
   }
 
+  @override
+  Future<AuthResponseModel> getCurrentUser(String token) async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+
+    return AuthResponseModel(
+      userId: 1,
+      email: 'mock.user@moviefinder.local',
+      username: 'mock.user',
+      token: token,
+    );
+  }
+
   String _usernameFromEmail(String email) {
     final localPart = email.split('@').first.trim();
     return localPart.isEmpty ? 'user' : localPart;

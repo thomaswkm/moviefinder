@@ -22,15 +22,7 @@ class MediaCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                item.posterAssetPath,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Icon(Icons.movie_outlined, size: 36),
-                  );
-                },
-              ),
+              _PosterImage(path: item.posterUrl),
               Positioned(
                 top: 8,
                 right: 8,
@@ -41,6 +33,24 @@ class MediaCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PosterImage extends StatelessWidget {
+  const _PosterImage({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    if (path.startsWith('http')) {
+      return Image.network(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
+    }
+    return Image.asset(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
+  }
+
+  Widget _errorBuilder(BuildContext context, Object error, StackTrace? stackTrace) {
+    return const Center(child: Icon(Icons.movie_outlined, size: 36));
   }
 }
 

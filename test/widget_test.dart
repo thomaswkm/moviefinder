@@ -10,7 +10,7 @@ void main() {
   });
 
   testWidgets('renders intro then login page', (WidgetTester tester) async {
-    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpWidget(const MovieFinderApp(useMockData: true));
 
     expect(find.text('MovieApp'), findsOneWidget);
 
@@ -26,7 +26,7 @@ void main() {
   testWidgets('global theme toggle switches app theme', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpWidget(const MovieFinderApp(useMockData: true));
 
     expect(
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
@@ -53,7 +53,7 @@ void main() {
   testWidgets('navigates from login to register page', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpWidget(const MovieFinderApp(useMockData: true));
     await tester.pump(const Duration(milliseconds: 1800));
     await tester.pumpAndSettle();
 
@@ -72,7 +72,7 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
 
-    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpWidget(const MovieFinderApp(useMockData: true));
     await tester.pumpAndSettle();
 
     expect(find.text('For you'), findsOneWidget);
@@ -84,7 +84,7 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
 
-    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpWidget(const MovieFinderApp(useMockData: true));
     await tester.pumpAndSettle();
 
     final mediaCard = find.byKey(const ValueKey('media_card_1'));
@@ -162,7 +162,7 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues({'auth_token': 'mock-jwt-token'});
 
-    await tester.pumpWidget(const MovieFinderApp());
+    await tester.pumpWidget(const MovieFinderApp(useMockData: true));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('home_filter_series')));

@@ -27,18 +27,28 @@ class FeaturedMediaCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.secondaryText.withValues(alpha: 0.18),
             ),
-            child: Image.asset(
-              item.posterAssetPath,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return const Center(
-                  child: Icon(Icons.movie_outlined, size: 48),
-                );
-              },
-            ),
+            child: _PosterImage(path: item.posterUrl),
           ),
         ),
       ),
     );
+  }
+}
+
+class _PosterImage extends StatelessWidget {
+  const _PosterImage({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    if (path.startsWith('http')) {
+      return Image.network(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
+    }
+    return Image.asset(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
+  }
+
+  Widget _errorBuilder(BuildContext context, Object error, StackTrace? stackTrace) {
+    return const Center(child: Icon(Icons.movie_outlined, size: 48));
   }
 }
