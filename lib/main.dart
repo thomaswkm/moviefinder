@@ -94,7 +94,9 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
       widget.useMockData ? const MediaMockDataSource() : mediaDataSource,
     );
     _homeController = HomeController(GetHomeMediaItems(mediaRepository));
-    _searchController = catalog.MediaSearchController(mediaDataSource);
+    _searchController = catalog.MediaSearchController(
+      widget.useMockData ? const MediaMockDataSource() : mediaDataSource,
+    );
     _wishlistController = WishlistController(
       widget.useMockData
           ? WishlistMockDataSource()

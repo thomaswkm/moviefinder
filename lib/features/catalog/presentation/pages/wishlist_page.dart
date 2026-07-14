@@ -62,9 +62,14 @@ class _WishlistPageState extends State<WishlistPage> {
                     children: [
                       IconButton(onPressed: widget.onBack, icon: const Icon(Icons.arrow_back)),
                       const SizedBox(width: 8),
+                      Icon(Icons.favorite, color: AppColors.primary, size: 28),
+                      const SizedBox(width: 8),
                       Text(
                         'Watchlist',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 28,
+                        ),
                       ),
                     ],
                   ),

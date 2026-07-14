@@ -27,6 +27,7 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     widget.controller.addListener(_onControllerChanged);
+    widget.controller.loadSuggestions();
   }
 
   @override
@@ -108,6 +109,39 @@ class _SearchResults extends StatelessWidget {
 
     if (controller.message != null) {
       return Center(child: Text(controller.message!));
+    }
+
+    if (!controller.hasSearched && controller.hasSuggestions) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Sugerencias',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: GridView.builder(
+              itemCount: controller.suggestions.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.68,
+                crossAxisSpacing: 26,
+                mainAxisSpacing: 22,
+              ),
+              itemBuilder: (context, index) {
+                final item = controller.suggestions[index];
+                return MediaCard(
+                    item: item, onTap: () => onItemSelected(item));
+              },
+            ),
+          ),
+        ],
+      );
     }
 
     if (controller.items.isEmpty) {

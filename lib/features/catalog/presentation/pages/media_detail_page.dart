@@ -207,8 +207,12 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
 
   String _durationLabel(MediaItem item) {
     return switch (item.type) {
-      MediaType.movie => _formatDuration(item.durationMinutes ?? 0),
-      MediaType.series => '${item.seasonsCount ?? 0} temporadas',
+      MediaType.movie => item.durationMinutes != null
+          ? _formatDuration(item.durationMinutes!)
+          : 'Sin datos',
+      MediaType.series => item.seasonsCount != null
+          ? '${item.seasonsCount} temporadas'
+          : 'Sin datos',
     };
   }
 

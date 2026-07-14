@@ -13,6 +13,8 @@ class StreamingPlatformList extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
+    final uniqueSources = _deduplicate(sources);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -26,11 +28,11 @@ class StreamingPlatformList extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: sources.isEmpty ? null : () {},
+              onPressed: uniqueSources.isEmpty ? null : () {},
               child: Text(
                 'See all',
                 style: textTheme.titleLarge?.copyWith(
-                  color: sources.isEmpty ? AppColors.secondaryText : null,
+                  color: uniqueSources.isEmpty ? AppColors.secondaryText : null,
                   fontSize: 18,
                 ),
               ),
@@ -38,22 +40,35 @@ class StreamingPlatformList extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        if (sources.isEmpty)
+        if (uniqueSources.isEmpty)
           const _EmptyStreamingState()
         else
           SizedBox(
             height: 148,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: sources.length,
+              itemCount: uniqueSources.length,
               separatorBuilder: (context, index) => const SizedBox(width: 16),
               itemBuilder: (context, index) {
-                return StreamingPlatformCard(source: sources[index]);
+                return StreamingPlatformCard(source: uniqueSources[index]);
               },
             ),
           ),
       ],
     );
+  }
+
+  List<StreamingSource> _deduplicate(List<StreamingSource> sources) {
+    final seen = <String>{};
+    final result = <StreamingSource>[];
+    for (final source in sources) {
+      if (source.logoAssetPath.isEmpty) continue;
+      final key = source.name.toLowerCase();
+      if (seen.add(key)) {
+        result.add(source);
+      }
+    }
+    return result;
   }
 }
 

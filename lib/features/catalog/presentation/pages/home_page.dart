@@ -31,6 +31,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final PageController _featuredController;
   int _featuredIndex = 0;
+  bool _showAll = false;
   _HomeFilter _selectedFilter = _HomeFilter.trending;
 
   @override
@@ -132,7 +133,7 @@ class _HomePageState extends State<HomePage> {
             height: 374,
             child: PageView.builder(
               controller: _featuredController,
-              itemCount: items.length,
+            itemCount: _showAll ? items.length : (items.length > 10 ? 10 : items.length),
               onPageChanged: (index) {
                 setState(() {
                   _featuredIndex = index;
@@ -188,9 +189,13 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    _showAll = !_showAll;
+                  });
+                },
                 child: Text(
-                  'See all',
+                  _showAll ? 'Show less' : 'See all',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontSize: 21,
                     fontWeight: FontWeight.w400,
@@ -203,7 +208,7 @@ class _HomePageState extends State<HomePage> {
           GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            itemCount: items.length,
+            itemCount: _showAll ? items.length : (items.length > 10 ? 10 : items.length),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.68,
@@ -394,19 +399,34 @@ class _MediaChips extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _InfoChip(label: item.genres.isEmpty ? 'Sin genero' : item.genres.first),
+        _InfoChip(
+          label: item.genres.isEmpty ? 'Sin genero' : item.genres.first,
+          textColor: AppColors.primary,
+        ),
         const SizedBox(width: 18),
-        _InfoChip(label: _secondaryLabel(item)),
+        _InfoChip(
+          icon: Icons.schedule_outlined,
+          label: _secondaryLabel(item),
+          textColor: AppColors.primary,
+        ),
         const SizedBox(width: 18),
-        _InfoChip(label: item.rating.toStringAsFixed(1)),
+        _InfoChip(
+          icon: Icons.star_rounded,
+          label: item.rating.toStringAsFixed(1),
+          textColor: const Color(0xFFFFD166),
+        ),
       ],
     );
   }
 
   String _secondaryLabel(MediaItem item) {
     return switch (item.type) {
-      MediaType.movie => _formatDuration(item.durationMinutes ?? 0),
-      MediaType.series => '${item.seasonsCount ?? 0} seasons',
+      MediaType.movie => item.durationMinutes != null
+          ? _formatDuration(item.durationMinutes!)
+          : 'Sin datos',
+      MediaType.series => item.seasonsCount != null
+          ? '${item.seasonsCount} seasons'
+          : 'Sin datos',
     };
   }
 
@@ -418,33 +438,56 @@ class _MediaChips extends StatelessWidget {
 }
 
 class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label});
+  const _InfoChip({required this.label, this.icon, this.textColor});
 
   final String label;
+  final IconData? icon;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = textColor ?? Colors.white;
 
     return Container(
-      width: 98,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      width: icon != null ? 118 : 100,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.transparent : const Color(0xFFD9D9D9),
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.black,
         borderRadius: BorderRadius.circular(18),
-        border: isDark ? Border.all(color: Colors.white, width: 1) : null,
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
+      child: icon != null
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: color,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
     );
   }
 }

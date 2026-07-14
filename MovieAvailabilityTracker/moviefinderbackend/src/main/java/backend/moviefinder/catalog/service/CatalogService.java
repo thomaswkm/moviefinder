@@ -20,6 +20,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 public class CatalogService {
@@ -68,8 +72,8 @@ public class CatalogService {
     );
 
     private final RestTemplate restTemplate;
+    private final ExecutorService executor = Executors.newFixedThreadPool(5);
 
-    // Inyectamos las variables de tu application.properties
     @Value("${tmdb.api.url}")
     private String tmdbApiUrl;
 
@@ -103,10 +107,17 @@ public class CatalogService {
         List<HomeMediaItemDto> items = new ArrayList<>();
 
         if (movies != null && movies.getResults() != null) {
-            movies.getResults().stream()
-                    .map(this::toHomeMovie)
+            List<HomeMediaItemDto> movieItems = movies.getResults().stream()
+                    .map(m -> toHomeMovie(m, null))
                     .filter(Objects::nonNull)
-                    .forEach(items::add);
+                    .toList();
+            Map<Long, Integer> runtimes = fetchRuntimes(movieItems);
+            movieItems.forEach(item -> {
+                if (item.getDurationMinutes() == null && runtimes.containsKey(item.getId())) {
+                    item.setDurationMinutes(runtimes.get(item.getId()));
+                }
+            });
+            items.addAll(movieItems);
         }
 
         if (tv != null && tv.getResults() != null) {
@@ -129,10 +140,19 @@ public class CatalogService {
             return List.of();
         }
 
-        return response.getResults().stream()
-                .map(this::toHomeMovie)
+        List<HomeMediaItemDto> items = response.getResults().stream()
+                .map(m -> toHomeMovie(m, null))
                 .filter(Objects::nonNull)
                 .toList();
+
+        Map<Long, Integer> runtimes = fetchRuntimes(items);
+        items.forEach(item -> {
+            if (item.getDurationMinutes() == null && runtimes.containsKey(item.getId())) {
+                item.setDurationMinutes(runtimes.get(item.getId()));
+            }
+        });
+
+        return items;
     }
 
     public HomeMediaItemDto getMovieAsHomeMedia(Long tmdbId) {
@@ -285,7 +305,7 @@ public class CatalogService {
         }
     }
 
-    private HomeMediaItemDto toHomeMovie(TmdbMovieDto movie) {
+    private HomeMediaItemDto toHomeMovie(TmdbMovieDto movie, Integer runtime) {
         if (movie == null || movie.getId() == null) {
             return null;
         }
@@ -300,7 +320,7 @@ public class CatalogService {
                 yearFromDate(movie.getReleaseDate()),
                 movie.getVoteAverage(),
                 genreNames(movie.getGenreIds(), MOVIE_GENRES),
-                null,
+                runtime,
                 null,
                 null,
                 null,
@@ -361,5 +381,33 @@ public class CatalogService {
 
     private String fallback(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private Map<Long, Integer> fetchRuntimes(List<HomeMediaItemDto> items) {
+        List<Long> movieIds = items.stream()
+                .filter(item -> "movie".equals(item.getType()))
+                .map(HomeMediaItemDto::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (movieIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<CompletableFuture<Map.Entry<Long, Integer>>> futures = movieIds.stream()
+                .map(id -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        TmdbMovieDetailsDto details = getMovieDetails(id);
+                        return Map.entry(id, details != null ? details.getRuntime() : null);
+                    } catch (Exception e) {
+                        return Map.entry(id, null);
+                    }
+                }, executor))
+                .toList();
+
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .filter(e -> e.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

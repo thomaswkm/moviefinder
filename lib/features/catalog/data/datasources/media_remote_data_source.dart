@@ -13,12 +13,18 @@ class MediaRemoteDataSource implements MediaDataSource {
     return _modelsFromResponse(response);
   }
 
+  @override
   Future<List<MediaItemModel>> searchMediaItems(String query) async {
     final response = await _apiClient.get(
       '/api/catalog/search/media',
       queryParameters: {'query': query},
     );
     return _modelsFromResponse(response);
+  }
+
+  @override
+  Future<List<MediaItemModel>> getSuggestions() async {
+    return getHomeMediaItems();
   }
 
   List<MediaItemModel> _modelsFromResponse(dynamic response) {

@@ -212,4 +212,106 @@ class MediaMockDataSource implements MediaDataSource {
       ),
     ];
   }
+
+  @override
+  Future<List<MediaItemModel>> searchMediaItems(String query) async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    final all = await getHomeMediaItems();
+    final lowerQuery = query.toLowerCase();
+    return all
+        .where((item) => item.title.toLowerCase().contains(lowerQuery))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<MediaItemModel>> getSuggestions() async {
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    return const [
+      MediaItemModel(
+        id: 1,
+        type: MediaType.movie,
+        title: 'The Godfather',
+        originalTitle: 'The Godfather',
+        overview:
+            'El patriarca de una familia criminal transfiere el control de su imperio a su hijo menor.',
+        posterUrl: '$_assetBasePath/the-godfather.jpg',
+        releaseYear: 1972,
+        durationMinutes: 175,
+        rating: 9.2,
+        genres: ['Crimen', 'Drama'],
+        director: 'Francis Ford Coppola',
+      ),
+      MediaItemModel(
+        id: 2,
+        type: MediaType.movie,
+        title: 'Pulp Fiction',
+        originalTitle: 'Pulp Fiction',
+        overview:
+            'Historias cruzadas de crimen, azar y violencia en Los Angeles.',
+        posterUrl: '$_assetBasePath/pulp-fiction.jpg',
+        releaseYear: 1994,
+        durationMinutes: 154,
+        rating: 8.9,
+        genres: ['Crimen', 'Drama'],
+        director: 'Quentin Tarantino',
+      ),
+      MediaItemModel(
+        id: 4,
+        type: MediaType.movie,
+        title: 'The Matrix',
+        originalTitle: 'The Matrix',
+        overview:
+            'Un hacker descubre que la realidad que conoce es una simulacion creada por maquinas.',
+        posterUrl: '$_assetBasePath/matrix.jpg',
+        releaseYear: 1999,
+        durationMinutes: 136,
+        rating: 8.7,
+        genres: ['Accion', 'Ciencia ficcion'],
+        director: 'Lana Wachowski, Lilly Wachowski',
+      ),
+      MediaItemModel(
+        id: 8,
+        type: MediaType.movie,
+        title: 'Fight Club',
+        originalTitle: 'Fight Club',
+        overview:
+            'Un oficinista insomne y un vendedor de jabon fundan un club clandestino de pelea.',
+        posterUrl: '$_assetBasePath/fight-club.jpg',
+        releaseYear: 1999,
+        durationMinutes: 139,
+        rating: 8.8,
+        genres: ['Drama', 'Suspenso'],
+        director: 'David Fincher',
+      ),
+      MediaItemModel(
+        id: 13,
+        type: MediaType.series,
+        title: 'Breaking Bad',
+        originalTitle: 'Breaking Bad',
+        overview:
+            'Un profesor de quimica con cancer terminal empieza a fabricar metanfetamina para asegurar el futuro de su familia.',
+        posterUrl: '$_assetBasePath/breaking-bad.jpg',
+        releaseYear: 2008,
+        seasonsCount: 5,
+        episodesCount: 62,
+        rating: 9.5,
+        genres: ['Crimen', 'Drama'],
+        creator: 'Vince Gilligan',
+      ),
+      MediaItemModel(
+        id: 7,
+        type: MediaType.movie,
+        title: 'Goodfellas',
+        originalTitle: 'Goodfellas',
+        overview:
+            'El ascenso y caida de Henry Hill dentro de la mafia neoyorquina.',
+        posterUrl: '$_assetBasePath/goodfellas.jpg',
+        releaseYear: 1990,
+        durationMinutes: 145,
+        rating: 8.7,
+        genres: ['Crimen', 'Biografia'],
+        director: 'Martin Scorsese',
+      ),
+    ];
+  }
 }

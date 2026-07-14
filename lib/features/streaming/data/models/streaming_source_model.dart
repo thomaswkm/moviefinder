@@ -55,7 +55,7 @@ String streamingLogoAssetPath(String name) {
     return 'assets/images/streaming/netflix-logo.png';
   }
 
-  if (normalizedName.contains('hbo')) {
+  if (normalizedName.contains('hbo') || normalizedName.contains('max')) {
     return 'assets/images/streaming/hbo-max-logo.png';
   }
 
@@ -67,5 +67,29 @@ String streamingLogoAssetPath(String name) {
     return 'assets/images/streaming/apple-tv-logo.png';
   }
 
-  return 'assets/images/streaming/netflix-logo.png';
+  if (normalizedName.contains('disney')) {
+    return 'assets/images/streaming/disney-plus-logo.png';
+  }
+
+  if (normalizedName.contains('paramount')) {
+    return 'assets/images/streaming/paramount-plus-logo.png';
+  }
+
+  if (normalizedName.contains('hulu')) {
+    return 'assets/images/streaming/hulu-logo.png';
+  }
+
+  if (normalizedName.contains('peacock')) {
+    return 'assets/images/streaming/peacock-logo.png';
+  }
+
+  if (normalizedName.contains('discovery')) {
+    return 'assets/images/streaming/discovery-plus-logo.png';
+  }
+
+  if (normalizedName.contains('starz') || normalizedName.contains('star+')) {
+    return 'assets/images/streaming/starz-logo.png';
+  }
+
+  return '';
 }

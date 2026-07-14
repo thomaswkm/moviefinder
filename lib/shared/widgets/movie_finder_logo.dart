@@ -62,45 +62,49 @@ class MovieFinderLogoPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    canvas.drawCircle(Offset(w * 0.13, h * 0.16), w * 0.1, paint);
+    // Dot of the "i"
+    canvas.drawCircle(Offset(w * 0.126, h * 0.1843), w * 0.096, paint);
 
+    // Slanted body of the "i" (parallelogram with a pointed top-right
+    // and a pointed bottom-left, like an italic dash)
     final iBody = Path()
-      ..moveTo(w * 0.03, h * 0.42)
-      ..lineTo(w * 0.23, h * 0.30)
-      ..lineTo(w * 0.23, h * 0.78)
-      ..lineTo(w * 0.03, h * 0.92)
+      ..moveTo(w * 0.2167, h * 0.3129)
+      ..lineTo(w * 0.2167, h * 0.7711)
+      ..lineTo(w * 0.0378, h * 0.9121)
+      ..lineTo(w * 0.0378, h * 0.4160)
       ..close();
     canvas.drawPath(iBody, paint);
 
+    // Left leg of the "M": flat top, straight outer edge, and an inner
+    // edge that angles inward to meet the opposite leg at the peak.
     final leftStem = Path()
-      ..moveTo(w * 0.28, h * 0.22)
-      ..lineTo(w * 0.46, h * 0.22)
-      ..lineTo(w * 0.56, h * 0.56)
-      ..lineTo(w * 0.47, h * 0.74)
-      ..lineTo(w * 0.38, h * 0.43)
-      ..lineTo(w * 0.38, h * 0.90)
-      ..lineTo(w * 0.28, h * 0.90)
+      ..moveTo(w * 0.2715, h * 0.2254)
+      ..lineTo(w * 0.4321, h * 0.2254)
+      ..lineTo(w * 0.6214, h * 0.5335)
+      ..lineTo(w * 0.4321, h * 0.5335)
+      ..lineTo(w * 0.4321, h * 0.8847)
+      ..lineTo(w * 0.2715, h * 0.8847)
       ..close();
     canvas.drawPath(leftStem, paint);
 
-    final middle = Path()
-      ..moveTo(w * 0.46, h * 0.22)
-      ..lineTo(w * 0.66, h * 0.22)
-      ..lineTo(w * 0.53, h * 0.78)
-      ..lineTo(w * 0.47, h * 0.74)
-      ..lineTo(w * 0.56, h * 0.56)
-      ..close();
-    canvas.drawPath(middle, paint);
-
+    // Right leg of the "M", mirrored from the left leg.
     final rightStem = Path()
-      ..moveTo(w * 0.66, h * 0.22)
-      ..lineTo(w * 0.97, h * 0.22)
-      ..lineTo(w * 0.97, h * 0.90)
-      ..lineTo(w * 0.78, h * 0.90)
-      ..lineTo(w * 0.78, h * 0.44)
-      ..lineTo(w * 0.53, h * 0.78)
+      ..moveTo(w * 0.9700, h * 0.2254)
+      ..lineTo(w * 0.8094, h * 0.2254)
+      ..lineTo(w * 0.6214, h * 0.5335)
+      ..lineTo(w * 0.8094, h * 0.5335)
+      ..lineTo(w * 0.8094, h * 0.8847)
+      ..lineTo(w * 0.9700, h * 0.8847)
       ..close();
     canvas.drawPath(rightStem, paint);
+
+    // The wedge that hangs from the peak down into the valley of the "M".
+    final middleWedge = Path()
+      ..moveTo(w * 0.4321, h * 0.5335)
+      ..lineTo(w * 0.8094, h * 0.5335)
+      ..lineTo(w * 0.6214, h * 0.8455)
+      ..close();
+    canvas.drawPath(middleWedge, paint);
   }
 
   @override
