@@ -8,10 +8,10 @@ class MediaMockDataSource implements MediaDataSource {
   static const _assetBasePath = 'assets/images/movies/mock';
 
   @override
-  Future<List<MediaItemModel>> getHomeMediaItems() async {
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-
-    return const [
+  Future<List<MediaItemModel>> getHomeMediaItems({
+    String mediaType = 'all',
+  }) async {
+    final items = const [
       MediaItemModel(
         id: 1,
         type: MediaType.movie,
@@ -211,6 +211,18 @@ class MediaMockDataSource implements MediaDataSource {
         creator: 'Frank Darabont',
       ),
     ];
+
+    return switch (mediaType) {
+      'movie' || 'movies' =>
+        items
+            .where((item) => item.type == MediaType.movie)
+            .toList(growable: false),
+      'series' || 'tv' =>
+        items
+            .where((item) => item.type == MediaType.series)
+            .toList(growable: false),
+      _ => items,
+    };
   }
 
   @override

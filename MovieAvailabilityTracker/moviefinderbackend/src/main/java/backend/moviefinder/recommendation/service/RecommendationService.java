@@ -48,7 +48,7 @@ public class RecommendationService {
         for (WishlistMovie movie : wishlist) {
             Long tmdbId = movie.getTmdbId();
             try {
-                var sources = streamingService.getStreamingSources(tmdbId);
+                var sources = streamingService.getStreamingSources(tmdbId, movie.getMediaType());
 
                 for (var source : sources) {
                     String name = source.getName().trim();
@@ -65,7 +65,7 @@ public class RecommendationService {
                     }
                 }
             } catch (Exception e) {
-                // Si falla la consulta a Watchmode para una película, la saltamos
+
             }
         }
 

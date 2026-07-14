@@ -8,11 +8,19 @@ class StreamingRemoteDataSource implements StreamingDataSource {
   final ApiClient _apiClient;
 
   @override
-  Future<List<StreamingSourceModel>> getStreamingSources(int tmdbId) async {
-    final response = await _apiClient.get('/api/streaming/$tmdbId');
+  Future<List<StreamingSourceModel>> getStreamingSources(
+    int tmdbId, {
+    required String mediaType,
+  }) async {
+    final response = await _apiClient.get(
+      '/api/streaming/$tmdbId',
+      queryParameters: {'mediaType': mediaType},
+    );
     final list = response as List<dynamic>;
     return list
-        .map((item) => StreamingSourceModel.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) => StreamingSourceModel.fromJson(item as Map<String, dynamic>),
+        )
         .toList(growable: false);
   }
 }

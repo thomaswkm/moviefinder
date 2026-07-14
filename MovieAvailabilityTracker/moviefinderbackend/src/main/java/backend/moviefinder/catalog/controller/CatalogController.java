@@ -23,8 +23,9 @@ public class CatalogController {
     @GetMapping("/home")
     public ResponseEntity<List<HomeMediaItemDto>> getHomeMedia(
             @RequestParam(defaultValue = "week") String timeWindow,
-            @RequestParam(defaultValue = "1") int page) {
-        return ResponseEntity.ok(catalogService.getHomeMedia(timeWindow, page));
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "all") String mediaType) {
+        return ResponseEntity.ok(catalogService.getHomeMedia(timeWindow, page, mediaType));
     }
 
     @GetMapping("/search/media")

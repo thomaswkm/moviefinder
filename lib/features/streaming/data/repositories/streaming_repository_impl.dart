@@ -8,8 +8,14 @@ class StreamingRepositoryImpl implements StreamingRepository {
   final StreamingDataSource _dataSource;
 
   @override
-  Future<List<StreamingSource>> getStreamingSources(int tmdbId) async {
-    final sources = await _dataSource.getStreamingSources(tmdbId);
+  Future<List<StreamingSource>> getStreamingSources(
+    int tmdbId, {
+    required String mediaType,
+  }) async {
+    final sources = await _dataSource.getStreamingSources(
+      tmdbId,
+      mediaType: mediaType,
+    );
     return sources.map((source) => source.toEntity()).toList(growable: false);
   }
 }

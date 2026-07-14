@@ -18,8 +18,11 @@ public class StreamingController {
     }
 
     @GetMapping("/{tmdbId}")
-    public ResponseEntity<List<WatchmodeSourceDto>> getStreamingSources(@PathVariable Long tmdbId) {
-        List<WatchmodeSourceDto> sources = streamingService.getStreamingSources(tmdbId);
+    public ResponseEntity<List<WatchmodeSourceDto>> getStreamingSources(
+            @PathVariable Long tmdbId,
+            @RequestParam(defaultValue = "movie") String mediaType
+    ) {
+        List<WatchmodeSourceDto> sources = streamingService.getStreamingSources(tmdbId, mediaType);
         return ResponseEntity.ok(sources);
     }
 }

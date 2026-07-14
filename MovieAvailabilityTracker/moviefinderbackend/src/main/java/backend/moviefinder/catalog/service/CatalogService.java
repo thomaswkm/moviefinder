@@ -101,8 +101,15 @@ public class CatalogService {
     }
 
     public List<HomeMediaItemDto> getHomeMedia(String timeWindow, int page) {
-        TmdbSearchResponseDto movies = getTrendingMovies(timeWindow, page);
-        TmdbTvResponseDto tv = getTrendingTv(timeWindow, page);
+        return getHomeMedia(timeWindow, page, "all");
+    }
+
+    public List<HomeMediaItemDto> getHomeMedia(String timeWindow, int page, String mediaType) {
+        String normalizedType = mediaType == null ? "all" : mediaType.trim().toLowerCase();
+        boolean includeMovies = !"series".equals(normalizedType) && !"tv".equals(normalizedType);
+        boolean includeTv = !"movie".equals(normalizedType) && !"movies".equals(normalizedType);
+        TmdbSearchResponseDto movies = includeMovies ? getTrendingMovies(timeWindow, page) : null;
+        TmdbTvResponseDto tv = includeTv ? getTrendingTv(timeWindow, page) : null;
 
         List<HomeMediaItemDto> items = new ArrayList<>();
 
@@ -111,12 +118,6 @@ public class CatalogService {
                     .map(m -> toHomeMovie(m, null))
                     .filter(Objects::nonNull)
                     .toList();
-            Map<Long, Integer> runtimes = fetchRuntimes(movieItems);
-            movieItems.forEach(item -> {
-                if (item.getDurationMinutes() == null && runtimes.containsKey(item.getId())) {
-                    item.setDurationMinutes(runtimes.get(item.getId()));
-                }
-            });
             items.addAll(movieItems);
         }
 

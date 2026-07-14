@@ -20,6 +20,7 @@ class AccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final textColor = _primaryTextColor(context);
 
     return Scaffold(
       body: SafeArea(
@@ -48,6 +49,7 @@ class AccountPage extends StatelessWidget {
                       Text(
                         'Cuenta',
                         style: textTheme.titleLarge?.copyWith(
+                          color: textColor,
                           fontWeight: FontWeight.w700,
                           fontSize: 28,
                         ),
@@ -91,6 +93,7 @@ class _AccountHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = _primaryTextColor(context);
     final name = user?.username ?? 'Usuario';
     final email = user?.email ?? 'Sesion activa';
 
@@ -136,6 +139,7 @@ class _AccountHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: textColor,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -177,6 +181,7 @@ class _AccountActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = _primaryTextColor(context);
     final accentColor = isDestructive ? AppColors.error : AppColors.primary;
 
     return InkWell(
@@ -213,6 +218,7 @@ class _AccountActionTile extends StatelessWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: textColor,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -229,11 +235,17 @@ class _AccountActionTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right),
+              Icon(Icons.chevron_right, color: textColor),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+Color _primaryTextColor(BuildContext context) {
+  return Theme.of(context).brightness == Brightness.dark
+      ? Colors.white
+      : Colors.black;
 }

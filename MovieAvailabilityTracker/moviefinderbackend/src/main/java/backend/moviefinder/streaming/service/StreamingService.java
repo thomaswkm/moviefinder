@@ -28,9 +28,12 @@ public class StreamingService {
     }
 
     public List<WatchmodeSourceDto> getStreamingSources(Long tmdbId) {
+        return getStreamingSources(tmdbId, "movie");
+    }
+
+    public List<WatchmodeSourceDto> getStreamingSources(Long tmdbId, String mediaType) {
         try {
-            // Aquí está el truco: agregamos "movie-" al ID de TMDB
-            String watchmodeId = "movie-" + tmdbId;
+            String watchmodeId = watchmodeTypePrefix(mediaType) + "-" + tmdbId;
 
             String url = UriComponentsBuilder.fromUriString(watchmodeApiUrl + "/title/" + watchmodeId + "/sources/")
                     .queryParam("apiKey", watchmodeApiKey)
@@ -48,5 +51,14 @@ public class StreamingService {
         } catch (RestClientException e) {
             throw new ExternalApiException("Error al conectar con Watchmode: " + e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
         }
+    }
+
+    private String watchmodeTypePrefix(String mediaType) {
+        if (mediaType == null) {
+            return "movie";
+        }
+
+        String normalizedType = mediaType.trim().toLowerCase();
+        return ("series".equals(normalizedType) || "tv".equals(normalizedType)) ? "tv" : "movie";
     }
 }

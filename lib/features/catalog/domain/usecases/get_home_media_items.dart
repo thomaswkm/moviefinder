@@ -6,7 +6,7 @@ class GetHomeMediaItems {
 
   final MediaRepository _repository;
 
-  Future<List<MediaItem>> call() {
-    return _repository.getHomeMediaItems();
+  Future<List<MediaItem>> call({String mediaType = 'all'}) {
+    return _repository.getHomeMediaItems(mediaType: mediaType);
   }
 }

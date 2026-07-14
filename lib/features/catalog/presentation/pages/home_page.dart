@@ -39,7 +39,9 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _featuredController = PageController(viewportFraction: 0.62);
     widget.controller.addListener(_onControllerChanged);
-    widget.controller.loadItems();
+    widget.controller.loadItems(
+      mediaType: _mediaTypeForFilter(_selectedFilter),
+    );
   }
 
   @override
@@ -70,7 +72,9 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: SafeArea(
         minimum: EdgeInsets.fromLTRB(20, 0, 20, 18),
         child: MainBottomNavigation(
-          onHomePressed: widget.controller.loadItems,
+          onHomePressed: () => widget.controller.loadItems(
+            mediaType: _mediaTypeForFilter(_selectedFilter),
+          ),
           onSearchPressed: widget.onSearchPressed,
           onWishlistPressed: widget.onWishlistPressed,
           onProfilePressed: widget.onProfilePressed,
@@ -133,7 +137,9 @@ class _HomePageState extends State<HomePage> {
             height: 374,
             child: PageView.builder(
               controller: _featuredController,
-            itemCount: _showAll ? items.length : (items.length > 10 ? 10 : items.length),
+              itemCount: _showAll
+                  ? items.length
+                  : (items.length > 10 ? 10 : items.length),
               onPageChanged: (index) {
                 setState(() {
                   _featuredIndex = index;
@@ -208,7 +214,9 @@ class _HomePageState extends State<HomePage> {
           GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            itemCount: _showAll ? items.length : (items.length > 10 ? 10 : items.length),
+            itemCount: _showAll
+                ? items.length
+                : (items.length > 10 ? 10 : items.length),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.68,
@@ -236,7 +244,7 @@ class _HomePageState extends State<HomePage> {
         items
             .where((item) => item.type == MediaType.movie)
             .toList(growable: false),
-      _HomeFilter.series || _HomeFilter.tvShows =>
+      _HomeFilter.series =>
         items
             .where((item) => item.type == MediaType.series)
             .toList(growable: false),
@@ -253,9 +261,19 @@ class _HomePageState extends State<HomePage> {
       _featuredIndex = 0;
     });
 
+    widget.controller.loadItems(mediaType: _mediaTypeForFilter(filter));
+
     if (_featuredController.hasClients) {
       _featuredController.jumpToPage(0);
     }
+  }
+
+  String _mediaTypeForFilter(_HomeFilter filter) {
+    return switch (filter) {
+      _HomeFilter.trending => 'all',
+      _HomeFilter.movies => 'movie',
+      _HomeFilter.series => 'series',
+    };
   }
 }
 
@@ -306,15 +324,6 @@ class _HomeTabs extends StatelessWidget {
                   ? AppColors.primary
                   : inactiveColor,
               onTap: () => onFilterChanged(_HomeFilter.series),
-            ),
-            const SizedBox(width: 28),
-            _HomeTab(
-              key: const Key('home_filter_tv_shows'),
-              label: 'TV shows',
-              color: selectedFilter == _HomeFilter.tvShows
-                  ? AppColors.primary
-                  : inactiveColor,
-              onTap: () => onFilterChanged(_HomeFilter.tvShows),
             ),
           ],
         ),
@@ -387,7 +396,7 @@ class _HomeScaffoldContent extends StatelessWidget {
   }
 }
 
-enum _HomeFilter { trending, movies, series, tvShows }
+enum _HomeFilter { trending, movies, series }
 
 class _MediaChips extends StatelessWidget {
   const _MediaChips({required this.item});
@@ -421,12 +430,14 @@ class _MediaChips extends StatelessWidget {
 
   String _secondaryLabel(MediaItem item) {
     return switch (item.type) {
-      MediaType.movie => item.durationMinutes != null
-          ? _formatDuration(item.durationMinutes!)
-          : 'Sin datos',
-      MediaType.series => item.seasonsCount != null
-          ? '${item.seasonsCount} seasons'
-          : 'Sin datos',
+      MediaType.movie =>
+        item.durationMinutes != null
+            ? _formatDuration(item.durationMinutes!)
+            : 'Sin datos',
+      MediaType.series =>
+        item.seasonsCount != null
+            ? '${item.seasonsCount} seasons'
+            : 'Sin datos',
     };
   }
 

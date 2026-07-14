@@ -6,7 +6,7 @@ class GetStreamingSources {
 
   final StreamingRepository _repository;
 
-  Future<List<StreamingSource>> call(int tmdbId) {
-    return _repository.getStreamingSources(tmdbId);
+  Future<List<StreamingSource>> call(int tmdbId, {required String mediaType}) {
+    return _repository.getStreamingSources(tmdbId, mediaType: mediaType);
   }
 }

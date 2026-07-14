@@ -34,7 +34,10 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
     super.initState();
     widget.wishlistController.addListener(_onWishlistChanged);
     widget.wishlistController.loadIds();
-    _streamingSources = widget.getStreamingSources(widget.item.id);
+    _streamingSources = widget.getStreamingSources(
+      widget.item.id,
+      mediaType: widget.item.type == MediaType.series ? 'series' : 'movie',
+    );
   }
 
   @override
@@ -98,7 +101,8 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
                               _LikeButton(
                                 isLiked: isLiked,
                                 isPending: isWishlistPending,
-                                onPressed: () => widget.wishlistController.toggle(item),
+                                onPressed: () =>
+                                    widget.wishlistController.toggle(item),
                               ),
                             ],
                           ),
@@ -207,12 +211,14 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
 
   String _durationLabel(MediaItem item) {
     return switch (item.type) {
-      MediaType.movie => item.durationMinutes != null
-          ? _formatDuration(item.durationMinutes!)
-          : 'Sin datos',
-      MediaType.series => item.seasonsCount != null
-          ? '${item.seasonsCount} temporadas'
-          : 'Sin datos',
+      MediaType.movie =>
+        item.durationMinutes != null
+            ? _formatDuration(item.durationMinutes!)
+            : 'Sin datos',
+      MediaType.series =>
+        item.seasonsCount != null
+            ? '${item.seasonsCount} temporadas'
+            : 'Sin datos',
     };
   }
 
@@ -304,7 +310,9 @@ class _StreamingSection extends StatelessWidget {
         }
 
         if (snapshot.hasError) {
-          return const _StreamingErrorState();
+          return const _StreamingErrorState(
+            message: 'No pudimos consultar la disponibilidad ahora.',
+          );
         }
 
         return StreamingPlatformList(sources: snapshot.data ?? const []);
@@ -326,7 +334,9 @@ class _StreamingLoadingState extends StatelessWidget {
 }
 
 class _StreamingErrorState extends StatelessWidget {
-  const _StreamingErrorState();
+  const _StreamingErrorState({required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -335,10 +345,7 @@ class _StreamingErrorState extends StatelessWidget {
         color: AppColors.error.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(18),
       ),
-      child: const Padding(
-        padding: EdgeInsets.all(18),
-        child: Text('No se pudieron cargar las plataformas.'),
-      ),
+      child: Padding(padding: const EdgeInsets.all(18), child: Text(message)),
     );
   }
 }
@@ -398,12 +405,20 @@ class _DetailPosterImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (path.startsWith('http')) {
-      return Image.network(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: _errorBuilder,
+      );
     }
     return Image.asset(path, fit: BoxFit.cover, errorBuilder: _errorBuilder);
   }
 
-  Widget _errorBuilder(BuildContext context, Object error, StackTrace? stackTrace) {
+  Widget _errorBuilder(
+    BuildContext context,
+    Object error,
+    StackTrace? stackTrace,
+  ) {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.secondaryText.withValues(alpha: 0.16),

@@ -20,7 +20,10 @@ class StreamingMockDataSource implements StreamingDataSource {
   static const _starzLogo = 'assets/images/streaming/starz-logo.png';
 
   @override
-  Future<List<StreamingSourceModel>> getStreamingSources(int tmdbId) async {
+  Future<List<StreamingSourceModel>> getStreamingSources(
+    int tmdbId, {
+    required String mediaType,
+  }) async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
 
     return switch (tmdbId) {

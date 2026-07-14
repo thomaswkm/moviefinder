@@ -95,13 +95,25 @@ class _RecommendationsPageState extends State<RecommendationsPage> {
   }
 }
 
-class _RecommendationsContent extends StatelessWidget {
+class _RecommendationsContent extends StatefulWidget {
   const _RecommendationsContent({required this.controller});
 
   final RecommendationsController controller;
 
   @override
+  State<_RecommendationsContent> createState() =>
+      _RecommendationsContentState();
+}
+
+class _RecommendationsContentState extends State<_RecommendationsContent> {
+  static const int _visibleRecommendationLimit = 3;
+
+  bool _showAllRecommendations = false;
+
+  @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
+
     if (controller.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -135,9 +147,22 @@ class _RecommendationsContent extends StatelessWidget {
           (recommendation) => recommendation.coveredMovies == topCoveredMovies,
         )
         .toList(growable: false);
+    final hasHiddenRecommendations =
+        controller.recommendations.length > _visibleRecommendationLimit;
+    final visibleRecommendations =
+        _showAllRecommendations || !hasHiddenRecommendations
+        ? controller.recommendations
+        : controller.recommendations
+              .take(_visibleRecommendationLimit)
+              .toList(growable: false);
+    final hiddenRecommendationsCount =
+        controller.recommendations.length - visibleRecommendations.length;
 
     return ListView.separated(
-      itemCount: controller.recommendations.length + 1,
+      itemCount:
+          visibleRecommendations.length +
+          1 +
+          (hasHiddenRecommendations ? 1 : 0),
       separatorBuilder: (context, index) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
         if (index == 0) {
@@ -147,8 +172,23 @@ class _RecommendationsContent extends StatelessWidget {
           );
         }
 
-        final recommendation = controller.recommendations[index - 1];
-        return _RecommendationTile(rank: index, recommendation: recommendation);
+        if (index <= visibleRecommendations.length) {
+          final recommendation = visibleRecommendations[index - 1];
+          return _RecommendationTile(
+            rank: index,
+            recommendation: recommendation,
+          );
+        }
+
+        return _ShowMoreRecommendationsButton(
+          isExpanded: _showAllRecommendations,
+          hiddenCount: hiddenRecommendationsCount,
+          onPressed: () {
+            setState(() {
+              _showAllRecommendations = !_showAllRecommendations;
+            });
+          },
+        );
       },
     );
   }
@@ -169,12 +209,13 @@ class _RecommendationSummary extends StatelessWidget {
     final textColor = _primaryTextColor(context);
     final coveredMovies = recommendations.first.coveredMovies;
     final providerNames = recommendations
+        .take(3)
         .map((recommendation) => recommendation.providerName)
         .toList(growable: false);
-    final title = recommendations.length == 1
+    final title = providerNames.length == 1
         ? 'Te recomendamos ${providerNames.first}'
         : 'Te recomendamos ${_joinProviderNames(providerNames)}';
-    final coverageText = recommendations.length == 1 ? 'Cubre' : 'Cubren';
+    final coverageText = providerNames.length == 1 ? 'Cubre' : 'Cubren';
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -381,6 +422,47 @@ class _SourceTypePill extends StatelessWidget {
       'buy' => 'Compra',
       _ => 'Info',
     };
+  }
+}
+
+class _ShowMoreRecommendationsButton extends StatelessWidget {
+  const _ShowMoreRecommendationsButton({
+    required this.isExpanded,
+    required this.hiddenCount,
+    required this.onPressed,
+  });
+
+  final bool isExpanded;
+  final int hiddenCount;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = _primaryTextColor(context);
+
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(
+        isExpanded ? Icons.expand_less : Icons.expand_more,
+        color: textColor,
+      ),
+      label: Text(
+        isExpanded
+            ? 'Ver menos'
+            : 'Ver $hiddenCount ${hiddenCount == 1 ? 'plataforma mas' : 'plataformas mas'}',
+      ),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: textColor,
+        minimumSize: const Size.fromHeight(48),
+        side: BorderSide(
+          color: AppColors.secondaryText.withValues(alpha: 0.35),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        textStyle: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+      ),
+    );
   }
 }
 

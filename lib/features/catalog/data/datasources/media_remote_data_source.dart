@@ -8,8 +8,13 @@ class MediaRemoteDataSource implements MediaDataSource {
   final ApiClient _apiClient;
 
   @override
-  Future<List<MediaItemModel>> getHomeMediaItems() async {
-    final response = await _apiClient.get('/api/catalog/home');
+  Future<List<MediaItemModel>> getHomeMediaItems({
+    String mediaType = 'all',
+  }) async {
+    final response = await _apiClient.get(
+      '/api/catalog/home',
+      queryParameters: {'mediaType': mediaType},
+    );
     return _modelsFromResponse(response);
   }
 

@@ -1,5 +1,5 @@
 import '../entities/media_item.dart';
 
 abstract interface class MediaRepository {
-  Future<List<MediaItem>> getHomeMediaItems();
+  Future<List<MediaItem>> getHomeMediaItems({String mediaType = 'all'});
 }

@@ -8,8 +8,8 @@ class MediaRepositoryImpl implements MediaRepository {
   final MediaDataSource _dataSource;
 
   @override
-  Future<List<MediaItem>> getHomeMediaItems() async {
-    final items = await _dataSource.getHomeMediaItems();
+  Future<List<MediaItem>> getHomeMediaItems({String mediaType = 'all'}) async {
+    final items = await _dataSource.getHomeMediaItems(mediaType: mediaType);
     return items.map((item) => item.toEntity()).toList(growable: false);
   }
 }
