@@ -398,9 +398,9 @@ public class CatalogService {
                 .map(id -> CompletableFuture.supplyAsync(() -> {
                     try {
                         TmdbMovieDetailsDto details = getMovieDetails(id);
-                        return Map.entry(id, details != null ? details.getRuntime() : null);
+                        return Map.<Long, Integer>entry(id, details != null ? details.getRuntime() : null);
                     } catch (Exception e) {
-                        return Map.entry(id, null);
+                        return Map.<Long, Integer>entry(id, null);
                     }
                 }, executor))
                 .toList();
