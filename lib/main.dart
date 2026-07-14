@@ -16,6 +16,7 @@ import 'features/auth/domain/usecases/logout_user.dart';
 import 'features/auth/domain/usecases/register_user.dart';
 import 'features/auth/presentation/controllers/login_controller.dart';
 import 'features/auth/presentation/controllers/register_controller.dart';
+import 'features/auth/presentation/pages/account_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/catalog/data/datasources/media_remote_data_source.dart';
@@ -26,13 +27,17 @@ import 'features/catalog/data/repositories/media_repository_impl.dart';
 import 'features/catalog/domain/entities/media_item.dart';
 import 'features/catalog/domain/usecases/get_home_media_items.dart';
 import 'features/catalog/presentation/controllers/home_controller.dart';
-import 'features/catalog/presentation/controllers/search_controller.dart' as catalog;
+import 'features/catalog/presentation/controllers/search_controller.dart'
+    as catalog;
 import 'features/catalog/presentation/controllers/wishlist_controller.dart';
 import 'features/catalog/presentation/pages/home_page.dart';
 import 'features/catalog/presentation/pages/media_detail_page.dart';
 import 'features/catalog/presentation/pages/search_page.dart';
 import 'features/catalog/presentation/pages/wishlist_page.dart';
 import 'features/intro/presentation/pages/intro_page.dart';
+import 'features/recommendations/data/datasources/recommendations_remote_data_source.dart';
+import 'features/recommendations/presentation/controllers/recommendations_controller.dart';
+import 'features/recommendations/presentation/pages/recommendations_page.dart';
 import 'features/streaming/data/datasources/streaming_remote_data_source.dart';
 import 'features/streaming/data/datasources/streaming_mock_data_source.dart';
 import 'features/streaming/data/repositories/streaming_repository_impl.dart';
@@ -63,6 +68,7 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
   late final HomeController _homeController;
   late final catalog.MediaSearchController _searchController;
   late final WishlistController _wishlistController;
+  late final RecommendationsController _recommendationsController;
   late final GetStreamingSources _getStreamingSources;
 
   AppScreen _screen = AppScreen.intro;
@@ -102,6 +108,9 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
           ? WishlistMockDataSource()
           : WishlistRemoteDataSource(_apiClient),
     );
+    _recommendationsController = RecommendationsController(
+      RecommendationsRemoteDataSource(_apiClient),
+    );
     final streamingRepository = StreamingRepositoryImpl(
       widget.useMockData
           ? const StreamingMockDataSource()
@@ -119,6 +128,7 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
     _homeController.dispose();
     _searchController.dispose();
     _wishlistController.dispose();
+    _recommendationsController.dispose();
     super.dispose();
   }
 
@@ -207,7 +217,7 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
         onItemSelected: (item) => _showMediaDetail(item, AppScreen.home),
         onSearchPressed: () => _showScreen(AppScreen.search),
         onWishlistPressed: () => _showScreen(AppScreen.wishlist),
-        onProfilePressed: _logout,
+        onProfilePressed: () => _showScreen(AppScreen.account),
       ),
       AppScreen.search => SearchPage(
         key: const ValueKey(AppScreen.search),
@@ -220,6 +230,18 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
         controller: _wishlistController,
         onItemSelected: (item) => _showMediaDetail(item, AppScreen.wishlist),
         onBack: () => _showScreen(AppScreen.home),
+      ),
+      AppScreen.account => AccountPage(
+        key: const ValueKey(AppScreen.account),
+        user: _authenticatedUser,
+        onBack: () => _showScreen(AppScreen.home),
+        onRecommendationsPressed: () => _showScreen(AppScreen.recommendations),
+        onLogoutPressed: _logout,
+      ),
+      AppScreen.recommendations => RecommendationsPage(
+        key: const ValueKey(AppScreen.recommendations),
+        controller: _recommendationsController,
+        onBack: () => _showScreen(AppScreen.account),
       ),
       AppScreen.mediaDetail => MediaDetailPage(
         key: const ValueKey(AppScreen.mediaDetail),
@@ -280,4 +302,14 @@ class _MovieFinderAppState extends State<MovieFinderApp> {
   }
 }
 
-enum AppScreen { intro, login, register, home, search, wishlist, mediaDetail }
+enum AppScreen {
+  intro,
+  login,
+  register,
+  home,
+  search,
+  wishlist,
+  account,
+  recommendations,
+  mediaDetail,
+}

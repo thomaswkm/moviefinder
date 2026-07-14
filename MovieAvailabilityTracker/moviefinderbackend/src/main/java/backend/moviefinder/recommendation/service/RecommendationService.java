@@ -88,10 +88,20 @@ public class RecommendationService {
                     if (b.getEstimatedCost() == null) return 1;
                     return Double.compare(a.getEstimatedCost(), b.getEstimatedCost());
                 })
-                .limit(3)
                 .collect(Collectors.toList());
 
-        return new RecommendationResponseDto(totalMovies, recommendations);
+        return new RecommendationResponseDto(totalMovies, limitRecommendationsWithTies(recommendations));
+    }
+
+    private List<ProviderRecommendationDto> limitRecommendationsWithTies(List<ProviderRecommendationDto> recommendations) {
+        if (recommendations.size() <= 3) {
+            return recommendations;
+        }
+
+        int cutoffCoveredMovies = recommendations.get(2).getCoveredMovies();
+        return recommendations.stream()
+                .filter(recommendation -> recommendation.getCoveredMovies() >= cutoffCoveredMovies)
+                .collect(Collectors.toList());
     }
 
     private String priorityType(String incoming, String existing) {
